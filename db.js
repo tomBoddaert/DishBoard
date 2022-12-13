@@ -1,0 +1,386 @@
+// If this were actually for production, this file
+//  would be replaced by one to communicate with
+//  an actual database
+
+import fs from 'fs';
+
+// Testing data
+let data = {
+  users:      {},
+  posts:      {},
+  userIds:    [],
+  postIds:    [],
+  nextUserId: 0,
+  nextPostId: 0
+};
+
+
+// Database methods
+
+
+/** Stringify the database
+ * @param { ...any } args
+ * @returns {string}
+ */
+export function stringify( ...args ) {
+  return JSON.stringify( data, ...args );
+}
+
+
+/** Set the testing data, this is removed in production
+ * @param {object} newData
+ */
+function setData( newData ) {
+  // Don't replace the production database by accident
+  if ( onProductionDB )
+    return;
+
+  data = newData;
+}
+
+
+let onProductionDB = false;
+/** Switches from the testing database to the production database */
+export function useProductionDB() {
+  onProductionDB = true;
+
+  // Load the data from the file
+  data = JSON.parse( fs.readFileSync( 'data.json' ) );
+
+
+  // Exit code adapted from https://stackoverflow.com/a/14032965
+
+  // Stop the program from closing instantly
+  process.stdin.resume();
+
+  // Save the data when the process is terminated or crashes
+  function terminationHandler( signal, code ) {
+    // Save the data to the file
+    console.log( `Received ${ signal }, saving data...` );
+    fs.writeFileSync( 'data.json', JSON.stringify( data ) );
+
+    // Exit the process
+    console.log( 'Exiting...' );
+    process.exit( code );
+  }
+
+  // When Ctrl+C is pressed, run the termination handler
+  process.on( 'SIGINT', signal => terminationHandler( signal, 0 ) );
+  // When the process is terminated, run the termination handler
+  process.on( 'SIGTERM', signal => terminationHandler( signal, 0 ) );
+  // If the process errors, run the termination handler
+  process.on( 'uncaughtException', () => terminationHandler( 'uncaughtException', 1 ) );
+
+  // When the process is restarted by nodemon, run the termination handler
+  //  (may not work on Windows)
+  process.on( 'SIGUSR2', signal => terminationHandler( signal, 0 ) );
+
+
+  // Save the data to the file every minute
+  setInterval( () => {
+    console.log( 'Saving data...' );
+    fs.writeFileSync( 'data.json', JSON.stringify( data ) );
+  }, 1000 * 60 );
+}
+
+
+// User methods
+
+
+/** Check if a user exists
+ * @param {number} id
+ * @returns {boolean}
+ */
+export function existsUser( id ) {
+  return id in data.users;
+}
+
+/** Check if a user is following another user
+ * @param {number} id
+ * @param {number} follow
+ * @returns {boolean}
+ */
+export function existsUserFollow( id, follow ) {
+  return data.users[ id ].following.includes( follow );
+}
+
+
+/** Get a user
+ * @param {number} id
+ * @returns {object}
+ */
+export function getUser( id ) {
+  return (
+    ( { id: userId, username, colour, glyph } ) => ( { userId, username, colour, glyph } )
+  )( data.users[ id ] );
+}
+
+/** Get a user's last n posts with an offset of o
+ * @param {number} id
+ * @param {number} n
+ * @param {number} o
+ * @returns { object[] }
+ */
+export function getUserPosts( id, n, o ) {
+  return data.users[ id ]?.posts.slice( -n - o, -o || undefined )
+    .map( postId => getPost( postId ) );
+}
+
+/** Get the last n users the user followed with an offset of o
+ * @param {number} id
+ * @param {number} n
+ * @param {number} o
+ * @returns { object[] }
+ */
+export function getUserFollowing( id, n, o ) {
+  return data.users[ id ]?.following.slice( -n - o, -o || undefined )
+    .map( followingId => getUser( followingId ) );
+}
+
+/** Get the user's following public setting
+ * @param {number} id
+ * @returns {boolean}
+ */
+export function getUserFollowingPublic( id ) {
+  return data.users[ id ]?.followingPublic;
+}
+
+/** Get the last n users to sign up with an offset of o
+ * @param {number} n
+ * @param {number} o
+ * @returns { object[] }
+ */
+export function getUsers( n, o ) {
+  return data.userIds.slice( -n - o, -o || undefined )
+    .map( userId => getUser( userId ) );
+}
+
+
+/** Add a new user to the database
+ * @param {string} username
+ * @param {string} colour
+ * @param {string} glyph
+ * @param {boolean} followingPublic
+ * @returns {number}
+ */
+export function addUser( username, colour, glyph, followingPublic ) {
+  const id = data.nextUserId++;
+  data.users[ id ] = {
+    id,
+    username,
+    colour,
+    glyph,
+    posts:      [],
+    following:  [],
+    followingPublic,
+    followedBy: []
+  };
+
+  data.userIds.push( id );
+
+  return id;
+}
+
+/** Follow a user form another user
+ * @param {number} id
+ * @param {number} follow
+ */
+export function addUserFollow( id, follow ) {
+  data.users[ id ].following.push( follow );
+  data.users[ follow ].followedBy.push( id );
+}
+
+
+/** Delete a user from the database
+ * @param {number} id
+ */
+export function deleteUser( id ) {
+  const user = data.users[ id ];
+
+  for ( const postId of user.posts )
+    deletePost( postId );
+
+  for ( const followingId of user.following )
+    deleteUserFollow( followingId, id );
+
+  for ( const followerId of user.followedBy )
+    deleteUserFollow( id, followerId );
+
+  data.userIds.splice( data.userIds.indexOf( id ), 1 );
+  delete data.users[ id ];
+}
+
+/** Unfollow a user from another user
+ * @param {number} id
+ * @param {number} follow
+ */
+export function deleteUserFollow( id, followId ) {
+  const user = data.users[ id ];
+  const follow = data.users[ followId ];
+
+  user.following.splice( user.following.indexOf( followId ), 1 );
+  follow.followedBy.splice( follow.followedBy.indexOf( id ), 1 );
+}
+
+
+/** Update a user's username
+ * @param {number} id
+ * @param {string} username
+ */
+export function updateUserUsername( id, username ) {
+  const user = data.users[ id ];
+
+  user.username = username;
+}
+
+/** Update a user's colour
+ * @param {number} id
+ * @param {string} colour
+ */
+export function updateUserColour( id, colour ) {
+  const user = data.users[ id ];
+
+  user.colour = colour;
+}
+
+/** Update a user's glyph
+ * @param {number} id
+ * @param {string} glyph
+ */
+export function updateUserGlyph( id, glyph ) {
+  const user = data.users[ id ];
+
+  user.glyph = glyph;
+}
+
+/** Update a user's following public setting
+ * @param {number} id
+ * @param {boolean} followingPublic
+ */
+export function updateUserFollowingPublic( id, followingPublic ) {
+  const user = data.users[ id ];
+
+  user.followingPublic = followingPublic;
+}
+
+
+// Post methods
+
+
+/** Check if a post exists
+ * @param {number} id
+ * @returns {boolean}
+ */
+export function existsPost( id ) {
+  return id in data.posts;
+}
+
+
+/** Get a post
+ * @param {number} id
+ * @returns {object}
+ */
+export function getPost( id ) {
+  return data.posts[ id ];
+}
+
+/** Get the last n posts with an offset of o
+ * @param {number} n
+ * @param {number} o
+ * @returns { object[] }
+ */
+export function getPosts( n, o ) {
+  return data.postIds.slice( -n - o, -o || undefined )
+    .map( postId => getPost( postId ) )
+    .map( post => {
+      return { ...post, user: getUser( post.user ) };
+    } );
+}
+
+
+/** Add a new post to the database
+ * @param {number} user
+ * @param {string} recipe
+ * @param {string} body
+ * @returns {number}
+ */
+export function addPost( user, recipe, body ) {
+  const id = data.nextPostId++;
+  data.posts[ id ] = {
+    id,
+    user,
+    timestamp: Date.now(),
+    recipe,
+    body
+  };
+
+  data.users[ user ].posts.push( id );
+  data.postIds.push( id );
+
+  return id;
+}
+
+
+/** Delete a post from the database
+ * @param {number} id
+ */
+export function deletePost( id ) {
+  const post = data.posts[ id ];
+
+  data.users[ post.user ].posts.splice( data.users[ post.user ].posts.indexOf( post.id ), 1 );
+  data.postIds.splice( data.postIds.indexOf( post.id ), 1 );
+
+  delete data.posts[ id ];
+}
+
+
+/** Update the post's recipe
+ * @param {number} id
+ * @param {string} recipe
+ */
+export function updatePostRecipe( id, recipe ) {
+  const post = data.posts[ id ];
+
+  post.recipe = recipe;
+}
+
+/** Update the post's body
+ * @param {number} id
+ * @param {string} body
+ */
+export function updatePostBody( id, body ) {
+  const post = data.posts[ id ];
+
+  post.body = body;
+}
+
+
+export default {
+  stringify,
+  setData,
+  useProductionDB,
+
+  existsUser,
+  existsUserFollow,
+  getUser,
+  getUserPosts,
+  getUserFollowing,
+  getUserFollowingPublic,
+  getUsers,
+  addUser,
+  addUserFollow,
+  deleteUser,
+  deleteUserFollow,
+  updateUserUsername,
+  updateUserColour,
+  updateUserGlyph,
+  updateUserFollowingPublic,
+
+  existsPost,
+  getPost,
+  getPosts,
+  addPost,
+  deletePost,
+  updatePostRecipe,
+  updatePostBody
+};
