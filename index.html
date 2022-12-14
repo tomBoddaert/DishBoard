@@ -1,11 +1,275 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DrinkShare</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>DrinkShare</title>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=DM+Serif+Display&family=Roboto&display=swap');
+
+    @font-face {
+      font-family: 'Angel-sealing Glyphs';
+      src: url('/resources/Angel-sealingGlyphs-Regular.woff2');
+    }
+
+    /* -- Variables -- */
+    :root {
+      /* background colours */
+      --bg-primary: #fff;
+      --bg-secondary: #bbb;
+      --by-tertiary: #88a;
+
+      /* foreground colours */
+      --fg-primary: #aaa;
+      --fg-secondary: #bbb;
+
+      /* text colours */
+      --text-primary: #000;
+      --text-secondary: #aaa;
+      --text-tertiary: #99f;
+      --text-tertiary2: #339;
+    }
+
+    :root.dark {
+      /* background colours */
+      --bg-primary: #222;
+      --bg-secondary: #333;
+      --by-tertiary: #88a;
+
+      /* foreground colours */
+      --fg-primary: #444;
+      --fg-secondary: #333;
+
+      /* text colours */
+      --text-primary: #eee;
+      --text-secondary: #666;
+      --text-tertiary: #99f;
+      --text-tertiary2: #ccf;
+    }
+
+    /* -- Top level styling -- */
+    html {
+      font-size: 16px;
+      font-family: Roboto, sans-serif;
+      color: var(--text-primary);
+      background-color: var(--bg-primary);
+
+      /* Add colour transitions for everything */
+      transition: color 0.25s, background-color 0.5s;
+    }
+
+    /* -- Container -- */
+    body {
+      margin: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      row-gap: 20px;
+    }
+
+    /* Dark mode selector */
+    #dm-selector {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      font-size: 2rem;
+      text-shadow: 0.2rem 0.2rem 0.2rem var(--fg-secondary);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* -- Navbar -- */
+    nav {
+      padding: 1rem 2rem;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-evenly;
+      column-gap: 5rem;
+      font-family: Comfortaa, sans-serif;
+      color: var(--text-secondary);
+      border: solid var(--fg-primary);
+      border-radius: 30px;
+    }
+
+    nav > * {
+      display: flex;
+      font-size: 2rem;
+      border-radius: 20%;
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.5s;
+    }
+
+    nav > .active {
+      color: var(--text-primary);
+    }
+
+    nav > :not(.active):hover {
+      color: var(--text-tertiary);
+    }
+
+    /* -- Content container -- */
+    main {
+      width: 50%;
+      min-height: 50vh;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: stretch;
+      border: solid var(--fg-primary);
+      border-radius: 40px;
+    }
+
+    /* -- Mobile changes */
+    @media (orientation: portrait) {
+      #dm-selector {
+        position: absolute;
+      }
+
+      nav {
+        padding: 1.5rem 1rem;
+        flex-direction: column;
+        row-gap: 1rem;
+        transition: height 1s;
+      }
+
+      main {
+        width: 80%;
+      }
+    }
+  </style>
+
+  <script>
+    /* -- Dark mode -- */
+    /* (this code was originally written for https://github.com/stevenaeola/proglabs_js/pull/39) */
+
+    let darkMode;
+    let dmSelector;
+
+    /** Set the page theme
+     * @param { boolean } dark - true if dark mode
+     */
+    function setTheme( dark ) {
+      // Add or remove the dark class to root
+      if ( dark )
+        document.lastChild.classList.add( 'dark' );
+      else
+        document.lastChild.classList.remove( 'dark' );
+
+      // Set the option in the local storage to make it persistent
+      localStorage.setItem( 'dark', dark.toString() );
+    }
+
+    /** Run when the dark mode selector is clicked
+     * @param { MouseEvent } ev
+     */
+    function dmClick( ev ) {
+      darkMode = !darkMode;
+      ev.target.innerText = darkMode ? '🌕' : '🌑';
+      setTheme( darkMode );
+    }
+
+    darkMode = ( () => {
+      // Get the dark mode setting stored as in local storage (as a string)
+      const storedModeText = localStorage.getItem( 'dark' );
+      // Convert the string to a boolean | undefined
+      const storedMode = storedModeText === 'true'
+        ? true
+        : storedModeText === 'false' ? false : undefined;
+      // If the mode was not set, then default to the browser's dark mode setting
+      return storedMode ?? window.matchMedia( '(prefers-color-scheme: dark)' ).matches;
+    } )();
+
+    // Set the initial theme
+    if ( darkMode )
+      setTheme( darkMode );
+
+
+    /* -- Nav bar -- */
+
+    let nav;
+    let navButtons;
+    let currentPage = 'feed';
+
+    /** Run when the nav bar is clicked
+     * @param { MouseEvent } ev
+     */
+    function navClick( ev ) {
+      const targetPage = ev.target.getAttribute( 'data-page-id' );
+      if ( targetPage === null )
+        return;
+
+      if ( targetPage === currentPage )
+        return;
+
+      console.log( `switching to ${ targetPage }` );
+      changePage( targetPage );
+    }
+
+
+    /* -- Pages -- */
+
+    /** Change the page
+     * @param { string } targetPage
+     */
+    function changePage( targetPage ) {
+      navButtons[ currentPage ]?.classList.remove( 'active' );
+      navButtons[ targetPage ]?.classList.add( 'active' );
+
+      currentPage = targetPage;
+    }
+
+
+    /* -- On load -- */
+
+    window.addEventListener( 'DOMContentLoaded', () => {
+      /* -- Dark mode -- */
+
+      // Get the dark mode selector
+      dmSelector = document.getElementById( 'dm-selector' );
+
+      // Set the dark mode selector's initial emoji
+      if ( darkMode )
+        dmSelector.innerText = '🌕';
+      // Add dmClick as a click event listener on the dark mode selector
+      dmSelector.addEventListener( 'click', dmClick );
+
+
+      /* -- Nav bar -- */
+
+      // Get the nav bar
+      nav = document.getElementsByTagName( 'nav' )[ 0 ];
+
+      // Get the nav bar buttons and label by page-id
+      navButtons = ( () => {
+        const buttons = {};
+        for ( const c of nav.children )
+          buttons[ c.getAttribute( 'data-page-id' ) ] = c;
+
+        return buttons;
+      } )();
+
+      nav.addEventListener( 'click', navClick );
+    } );
+  </script>
 </head>
+
 <body>
-    <h1>DrinkShare</h1>
+  <header>
+  <span id="dm-selector">🌑</span>
+  <nav>
+      <span data-page-id="feed" class="active">Feed</span>
+      <span data-page-id="users">Users</span>
+      <span data-page-id="profile">Profile</span>
+  </nav>
+  </header>
+    
+  <main>
+  </main>
 </body>
+
 </html>
