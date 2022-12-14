@@ -1,6 +1,13 @@
+/**
+ * @file Manages the data.json file as a database.
+ * @author Tom Boddaert
+ */
+
+
 // If this were actually for production, this file
 //  would be replaced by one to communicate with
-//  an actual database
+//  an actual database, rather than just using the
+//  data.json file
 
 import fs from 'fs';
 
@@ -20,7 +27,7 @@ let data = {
 
 /** Stringify the database
  * @param { ...any } args
- * @returns {string}
+ * @returns { string }
  */
 export function stringify( ...args ) {
   return JSON.stringify( data, ...args );
@@ -28,7 +35,7 @@ export function stringify( ...args ) {
 
 
 /** Set the testing data, this is removed in production
- * @param {object} newData
+ * @param { object } newData
  */
 function setData( newData ) {
   // Don't replace the production database by accident
@@ -54,6 +61,7 @@ export function useProductionDB() {
   process.stdin.resume();
 
   // Save the data when the process is terminated or crashes
+  // eslint-disable-next-line jsdoc/require-jsdoc
   function terminationHandler( signal, code ) {
     // Save the data to the file
     console.log( `Received ${ signal }, saving data...` );
@@ -88,17 +96,17 @@ export function useProductionDB() {
 
 
 /** Check if a user exists
- * @param {number} id
- * @returns {boolean}
+ * @param { number } id
+ * @returns { boolean }
  */
 export function existsUser( id ) {
   return id in data.users;
 }
 
 /** Check if a user is following another user
- * @param {number} id
- * @param {number} follow
- * @returns {boolean}
+ * @param { number } id
+ * @param { number } follow
+ * @returns { boolean }
  */
 export function existsUserFollow( id, follow ) {
   return data.users[ id ].following.includes( follow );
@@ -106,19 +114,19 @@ export function existsUserFollow( id, follow ) {
 
 
 /** Get a user
- * @param {number} id
- * @returns {object}
+ * @param { number } id
+ * @returns { object }
  */
 export function getUser( id ) {
   return (
-    ( { id: userId, username, colour, glyph } ) => ( { userId, username, colour, glyph } )
+    ( { id: userId, username, colour, glyph } ) => ( { id: userId, username, colour, glyph } )
   )( data.users[ id ] );
 }
 
 /** Get a user's last n posts with an offset of o
- * @param {number} id
- * @param {number} n
- * @param {number} o
+ * @param { number } id
+ * @param { number } n
+ * @param { number } o
  * @returns { object[] }
  */
 export function getUserPosts( id, n, o ) {
@@ -127,9 +135,9 @@ export function getUserPosts( id, n, o ) {
 }
 
 /** Get the last n users the user followed with an offset of o
- * @param {number} id
- * @param {number} n
- * @param {number} o
+ * @param { number } id
+ * @param { number } n
+ * @param { number } o
  * @returns { object[] }
  */
 export function getUserFollowing( id, n, o ) {
@@ -138,16 +146,16 @@ export function getUserFollowing( id, n, o ) {
 }
 
 /** Get the user's following public setting
- * @param {number} id
- * @returns {boolean}
+ * @param { number } id
+ * @returns { boolean }
  */
 export function getUserFollowingPublic( id ) {
   return data.users[ id ]?.followingPublic;
 }
 
 /** Get the last n users to sign up with an offset of o
- * @param {number} n
- * @param {number} o
+ * @param { number } n
+ * @param { number } o
  * @returns { object[] }
  */
 export function getUsers( n, o ) {
@@ -157,11 +165,11 @@ export function getUsers( n, o ) {
 
 
 /** Add a new user to the database
- * @param {string} username
- * @param {string} colour
- * @param {string} glyph
- * @param {boolean} followingPublic
- * @returns {number}
+ * @param { string } username
+ * @param { string } colour
+ * @param { string } glyph
+ * @param { boolean } followingPublic
+ * @returns { number }
  */
 export function addUser( username, colour, glyph, followingPublic ) {
   const id = data.nextUserId++;
@@ -182,8 +190,8 @@ export function addUser( username, colour, glyph, followingPublic ) {
 }
 
 /** Follow a user form another user
- * @param {number} id
- * @param {number} follow
+ * @param { number } id
+ * @param { number } follow
  */
 export function addUserFollow( id, follow ) {
   data.users[ id ].following.push( follow );
@@ -192,7 +200,7 @@ export function addUserFollow( id, follow ) {
 
 
 /** Delete a user from the database
- * @param {number} id
+ * @param { number } id
  */
 export function deleteUser( id ) {
   const user = data.users[ id ];
@@ -211,8 +219,8 @@ export function deleteUser( id ) {
 }
 
 /** Unfollow a user from another user
- * @param {number} id
- * @param {number} follow
+ * @param { number } id
+ * @param { number } followId
  */
 export function deleteUserFollow( id, followId ) {
   const user = data.users[ id ];
@@ -224,8 +232,8 @@ export function deleteUserFollow( id, followId ) {
 
 
 /** Update a user's username
- * @param {number} id
- * @param {string} username
+ * @param { number } id
+ * @param { string } username
  */
 export function updateUserUsername( id, username ) {
   const user = data.users[ id ];
@@ -234,8 +242,8 @@ export function updateUserUsername( id, username ) {
 }
 
 /** Update a user's colour
- * @param {number} id
- * @param {string} colour
+ * @param { number } id
+ * @param { string } colour
  */
 export function updateUserColour( id, colour ) {
   const user = data.users[ id ];
@@ -244,8 +252,8 @@ export function updateUserColour( id, colour ) {
 }
 
 /** Update a user's glyph
- * @param {number} id
- * @param {string} glyph
+ * @param { number } id
+ * @param { string } glyph
  */
 export function updateUserGlyph( id, glyph ) {
   const user = data.users[ id ];
@@ -254,8 +262,8 @@ export function updateUserGlyph( id, glyph ) {
 }
 
 /** Update a user's following public setting
- * @param {number} id
- * @param {boolean} followingPublic
+ * @param { number } id
+ * @param { boolean } followingPublic
  */
 export function updateUserFollowingPublic( id, followingPublic ) {
   const user = data.users[ id ];
@@ -268,8 +276,8 @@ export function updateUserFollowingPublic( id, followingPublic ) {
 
 
 /** Check if a post exists
- * @param {number} id
- * @returns {boolean}
+ * @param { number } id
+ * @returns { boolean }
  */
 export function existsPost( id ) {
   return id in data.posts;
@@ -277,16 +285,16 @@ export function existsPost( id ) {
 
 
 /** Get a post
- * @param {number} id
- * @returns {object}
+ * @param { number } id
+ * @returns { object }
  */
 export function getPost( id ) {
   return data.posts[ id ];
 }
 
 /** Get the last n posts with an offset of o
- * @param {number} n
- * @param {number} o
+ * @param { number } n
+ * @param { number } o
  * @returns { object[] }
  */
 export function getPosts( n, o ) {
@@ -299,10 +307,10 @@ export function getPosts( n, o ) {
 
 
 /** Add a new post to the database
- * @param {number} user
- * @param {string} recipe
- * @param {string} body
- * @returns {number}
+ * @param { number } user
+ * @param { string } recipe
+ * @param { string } body
+ * @returns { number }
  */
 export function addPost( user, recipe, body ) {
   const id = data.nextPostId++;
@@ -322,7 +330,7 @@ export function addPost( user, recipe, body ) {
 
 
 /** Delete a post from the database
- * @param {number} id
+ * @param { number } id
  */
 export function deletePost( id ) {
   const post = data.posts[ id ];
@@ -335,8 +343,8 @@ export function deletePost( id ) {
 
 
 /** Update the post's recipe
- * @param {number} id
- * @param {string} recipe
+ * @param { number } id
+ * @param { string } recipe
  */
 export function updatePostRecipe( id, recipe ) {
   const post = data.posts[ id ];
@@ -345,8 +353,8 @@ export function updatePostRecipe( id, recipe ) {
 }
 
 /** Update the post's body
- * @param {number} id
- * @param {string} body
+ * @param { number } id
+ * @param { string } body
  */
 export function updatePostBody( id, body ) {
   const post = data.posts[ id ];

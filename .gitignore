@@ -4,3 +4,6 @@ package-lock.json
 
 # The database
 data.json
+
+# Jest coverage report
+coverage

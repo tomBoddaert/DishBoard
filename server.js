@@ -1,8 +1,13 @@
+/**
+ * @file Manages the HTTP server
+ * @author Tom Boddaert
+ */
+
+
 import fs from 'fs/promises';
 import express from 'express';
 
-import { useProductionDB } from './db.js';
-import { APIError, getData, addData, deleteData, patchData } from './api.js';
+import { APIError, getData, addData, deleteData, updateData } from './api.js';
 
 // Create the app
 export const app = express();
@@ -41,7 +46,7 @@ app.get( '/api/:type', ( req, res ) => {
         res.status( e.status );
     } else {
       // Server error
-      result = { status: 'error', message: 'Internal error!' };
+      result = { success: false, message: 'Internal error!' };
       console.error( e );
     }
   }
@@ -69,7 +74,7 @@ app.post( '/api/:type', ( req, res ) => {
         res.status( e.status );
     } else {
       // Server error
-      result = { status: 'error', message: 'Internal error!' };
+      result = { success: false, message: 'Internal error!' };
       console.error( e );
     }
   }
@@ -97,7 +102,7 @@ app.delete( '/api/:type', ( req, res ) => {
         res.status( e.status );
     } else {
       // Server error
-      result = { status: 'error', message: 'Internal error!' };
+      result = { success: false, message: 'Internal error!' };
       console.error( e );
     }
   }
@@ -114,7 +119,7 @@ app.patch( '/api/:type', ( req, res ) => {
 
   try {
     // Patch the data with the database and wrap the response
-    result = { success: true, data: patchData( type, req.body ) };
+    result = { success: true, data: updateData( type, req.query, req.body ) };
   } catch ( e ) {
     if ( e instanceof APIError ) {
       // Bad request
@@ -123,16 +128,13 @@ app.patch( '/api/:type', ( req, res ) => {
       // If the HTTP status was set in the error, add it to the request
       if ( e.status !== undefined )
         res.status( e.status );
+    } else {
+      // Server error
+      result = { success: false, message: 'Internal error!' };
+      console.error( e );
     }
   }
 
   res.contentType( 'application/json' );
   res.json( result );
 } );
-
-
-// Switch to the production database
-useProductionDB();
-
-// Listen for requests
-app.listen( 8080, () => console.log( 'Listening on http://localhost:8080/' ) );

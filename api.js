@@ -1,12 +1,18 @@
+/**
+ * @file Manages API requests
+ * @author Tom Boddaert
+ */
+
+
 import db from './db.js';
 
 
 /** Error for bad API calls */
 export class APIError extends Error {
-  /**
-   * @param {string} message
-   * @param {number=} status
-  */
+  /** Error for bad API calls
+   * @param { string } message
+   * @param { number= } status
+   */
   constructor( message, status ) {
     super( message );
     this.name = 'DBError';
@@ -21,11 +27,12 @@ const USERNAME_REGEX = /^[a-zA-Z0-9_.\-+=!*|]{1,20}$/;
 const COLOUR_REGEX = /^#[0-9a-f]{6}$/;
 /** The list of valid glyphs */
 const VALID_GLYPHS
-    = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@£$%^&*()[{]};:\'"\\|/?,<.>';
+  = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@£$%^&*()[{]};:\'"\\|/?,<.>';
 
 /** Check that the value was provided, otherwise throw an error
- * @param {any} value
- * @param {string} name
+ * @param { any } value
+ * @param { string } name
+ * @throws { APIError }
  */
 function validateParamGiven( value, name ) {
   // If the value was not provided, throw an error
@@ -34,9 +41,10 @@ function validateParamGiven( value, name ) {
 }
 
 /** Check that the value was provided and is the correct type
- * @param {any} value
- * @param {string} name
- * @param {string} type
+ * @param { any } value
+ * @param { string } name
+ * @param { string } type
+ * @throws { APIError }
  */
 function validateParamType( value, name, type ) {
   // If the value was not provided, throw an error
@@ -49,8 +57,9 @@ function validateParamType( value, name, type ) {
 
 /** Check that the value was provided, and parse it as an integer
  * @param { string | number } value
- * @param {string} name
- * @returns {number}
+ * @param { string } name
+ * @returns { number }
+ * @throws { APIError }
  */
 function validateParamParseInt( value, name ) {
   // If the value was not provided, throw an error
@@ -66,9 +75,10 @@ function validateParamParseInt( value, name ) {
 
 /** Parse the value as an integer with a default value
  * @param { string | number | undefined } value
- * @param {string} name
- * @param {number} defaultValue
- * @returns {number}
+ * @param { string } name
+ * @param { number } defaultValue
+ * @returns { number }
+ * @throws { APIError }
  */
 function validateParamParseIntDefault( value, name, defaultValue ) {
   // Parse the value as an integer with default, if it is not an integer, throw an error
@@ -79,11 +89,43 @@ function validateParamParseIntDefault( value, name, defaultValue ) {
   return value;
 }
 
+/** Parse the value as an integer with a default value
+ * @param { string } value
+ * @param { string } name
+ * @param { number[] } defaultValues
+ * @returns { number[] }
+ * @throws { APIError }
+ */
+function validateParamParseIntListDefault( value, name, ...defaultValues ) {
+  // Split the values by ,
+  let values = value.split( ',' );
+  // eslint-disable-next-line no-extra-parens
+  if ( values.length === 0 || ( values.length === 1 && values[ 0 ] === '' ) )
+    // Copy to avoid overwriting of the original by the caller
+    return [ ...defaultValues ];
+
+  // If too many values were provided, throw an error
+  if ( values.length > defaultValues.length )
+    throw new APIError( `Invalid ${ name } parameter provided!` );
+
+  // Default the values if left empty and parse them as integers
+  values = defaultValues
+    .map( ( d, i ) => values[ i ] ? values[ i ] : d )
+    .map( x => parseInt( x ) );
+
+  // If any of the arguments are not integers, throw an error
+  if ( values.some( x => isNaN( x ) || x < 0 ) )
+    throw new APIError( `Invalid ${ name } parameter provided!` );
+
+  return values;
+}
+
 
 /** Get data
- * @param {string} type
- * @param {{ [ key: string ]: string }} options
- * @returns {any}
+ * @param { string } type
+ * @param { Object< string, string > } options
+ * @returns { any }
+ * @throws { APIError }
  */
 export function getData( type, options ) {
   let result, id, n, o;
@@ -104,21 +146,9 @@ export function getData( type, options ) {
 
       // If the user's posts were requested, get them
       if ( 'posts' in options ) {
-        // Get the number of posts and offset, if provided
-        const postsOptions = options.posts.split( ',' )
-          .filter( x => x )
-          .map( x => parseInt( x ) );
-        // If too many arguments were provided, throw an error
-        if ( postsOptions.length > 2 )
-          throw new APIError( 'Invalid posts parameter provided!' );
-
-        // If any of the arguments are not integers, throw an error
-        if ( postsOptions.some( x => isNaN( x ) ) )
-          throw new APIError( 'Invalid posts parameter provided!' );
-
-        // Get the number of posts and offset with default values
-        n = postsOptions[ 0 ] || 10;
-        o = postsOptions[ 1 ] || 0;
+        // Get the number of posts and offset, if provided and error if they are not
+        //  integers, with defaults
+        [ n, o ] = validateParamParseIntListDefault( options.posts, 'posts', 10, 0 );
 
         // Get the posts, and add them to the result
         result.posts = db.getUserPosts( id, n, o );
@@ -126,21 +156,9 @@ export function getData( type, options ) {
 
       // If the user's following list was requested and is public, get it
       if ( 'following' in options && db.getUserFollowingPublic( id ) ) {
-        // Get the number of users and offset, if provided
-        const followingOptions = options.following.split( ',' )
-          .filter( x => x )
-          .map( x => parseInt( x ) );
-        // If too many arguments were provided, throw an error
-        if ( followingOptions.length > 2 )
-          throw new APIError( 'Invalid following parameter provided!' );
-
-        // If any of the arguments are not integers, throw an error
-        if ( followingOptions.some( x => isNaN( x ) ) )
-          throw new APIError( 'Invalid following parameter provided!' );
-
-        // Get the number of users and offset with default values
-        n = followingOptions[ 0 ] || 10;
-        o = followingOptions[ 1 ] || 0;
+        // Get the number of users and offset, if provided and error if they are not
+        //  integers, with defaults
+        [ n, o ] = validateParamParseIntListDefault( options.following, 'following', 10, 0 );
 
         // Get the users, and add them to the result
         result.following = db.getUserFollowing( id, n, o );
@@ -192,10 +210,6 @@ export function getData( type, options ) {
       // Get the posts
       result = db.getPosts( n, o );
 
-      // result.map( post => {
-      //   post.user = getData( 'user', { id: post.user } );
-      // } );
-
       break;
 
     case 'log':
@@ -206,16 +220,17 @@ export function getData( type, options ) {
 
     default:
       // If the type is not dealt with above, throw an error
-      throw new APIError( 'Invalid API object request!' );
+      throw new APIError( 'Invalid API object request!', 404 );
   }
 
   return result;
 }
 
 /** Add data
- * @param {string} type
- * @param {{ [ key: string ]: string }} options
+ * @param { string } type
+ * @param { Object< string, any > } options
  * @returns { number | boolean }
+ * @throws { APIError }
  */
 export function addData( type, options ) {
   let result;
@@ -319,17 +334,17 @@ export function addData( type, options ) {
 
     default:
       // If the type is not dealt with above, throw an error
-      throw new APIError( 'Invalid API object request!' );
+      throw new APIError( 'Invalid API object request!', 404 );
   }
 
   return result;
 }
 
 /** Delete data
- * @param {string} type
- * @param {{ [ key: string ]: string }} idOptions
- * @param {{ [ key: string ]: string }} options
- * @returns {boolean}
+ * @param { string } type
+ * @param { Object< string, string > } options
+ * @returns { boolean }
+ * @throws { APIError }
  */
 export function deleteData( type, options ) {
   let result, id, followId;
@@ -407,14 +422,21 @@ export function deleteData( type, options ) {
 
     default:
       // If the type is not dealt with above, throw an error
-      throw new APIError( 'Invalid API object request!' );
+      throw new APIError( 'Invalid API object request!', 404 );
   }
 
   return result;
 }
 
-export function patchData( type, idOptions, options ) {
-  let result;
+/** Update data
+ * @param { string } type
+ * @param { Object< string, string > } idOptions
+ * @param { Object< string, any > } options
+ * @returns { any }
+ * @throws { APIError }
+ */
+export function updateData( type, idOptions, options ) {
+  let result, id;
 
   switch ( type ) {
     case 'user':
@@ -424,12 +446,13 @@ export function patchData( type, idOptions, options ) {
         JSON.stringify( options )
       }` );
 
-      // If the user id is not provided or is not a number, throw an error
-      validateParamType( idOptions.id, 'id', 'number' );
+      // Parse the id as an integer, if it was not provided or is not an integer,
+      //  throw an error
+      id = validateParamParseInt( idOptions.id, 'id' );
 
       // If the user does not exist, throw an error
-      if ( !db.existsUser( idOptions.id ) )
-        throw new APIError( `User '${ idOptions.id }' not found!` );
+      if ( !db.existsUser( id ) )
+        throw new APIError( `User '${ id }' not found!` );
 
       // If the username is provided, attempt to update it
       if ( options.username !== undefined ) {
@@ -440,7 +463,7 @@ export function patchData( type, idOptions, options ) {
         )
           throw new APIError( 'Invalid username provided!' );
 
-        db.updateUserUsername( idOptions.id, options.username );
+        db.updateUserUsername( id, options.username );
       }
 
       // If the colour is provided, attempt to update it
@@ -449,7 +472,7 @@ export function patchData( type, idOptions, options ) {
         if ( typeof options.colour !== 'string' || !COLOUR_REGEX.test( options.colour ) )
           throw new APIError( 'Invalid colour provided!' );
 
-        db.updateUserColour( idOptions.id, options.colour );
+        db.updateUserColour( id, options.colour );
       }
 
       // If the glyph is provided, attempt to update it
@@ -462,7 +485,7 @@ export function patchData( type, idOptions, options ) {
         )
           throw new APIError( 'Invalid glyph provided!' );
 
-        db.updateUserGlyph( idOptions.id, options.glyph );
+        db.updateUserGlyph( id, options.glyph );
       }
 
       // If the followingPublic is provided, attempt to update it
@@ -470,7 +493,7 @@ export function patchData( type, idOptions, options ) {
         // If followingPublic is not provided or is not a boolean, throw an error
         validateParamType( options.followingPublic, 'followingPublic', 'boolean' );
 
-        db.updateUserGlyph( idOptions.id, options.followingPublic );
+        db.updateUserGlyph( id, options.followingPublic );
       }
 
       // Return true
@@ -484,19 +507,20 @@ export function patchData( type, idOptions, options ) {
         JSON.stringify( options )
       }` );
 
-      // If the post id is not provided or is not a number, throw an error
-      validateParamType( idOptions.id, 'id', 'number' );
+      // Parse the id as an integer, if it was not provided or is not an integer,
+      //  throw an error
+      id = validateParamParseInt( idOptions.id, 'id' );
 
       // If the post does not exist, throw an error
-      if ( !db.existsPost( idOptions.id ) )
-        throw new APIError( `Post '${ idOptions.id }' not found!` );
+      if ( !db.existsPost( id ) )
+        throw new APIError( `Post '${ id }' not found!` );
 
       // If the recipe is provided, attempt to update it
       if ( options.recipe !== undefined ) {
         // If the recipe is not valid, throw an error
         // TODO: validate and parse recipe
 
-        db.updatePostRecipe( idOptions.id, options.recipe );
+        db.updatePostRecipe( id, options.recipe );
       }
 
       // If the body is provided, attempt to update it
@@ -504,7 +528,7 @@ export function patchData( type, idOptions, options ) {
         // If the body is not a string, throw an error
         validateParamType( options.body, 'body', 'string' );
 
-        db.updatePostRecipe( idOptions.id, options.recipe );
+        db.updatePostRecipe( id, options.recipe );
       }
 
       // Return true
@@ -513,7 +537,7 @@ export function patchData( type, idOptions, options ) {
 
     default:
       // If the type is not dealt with above, throw an error
-      throw new APIError( 'Invalid API object request!' );
+      throw new APIError( 'Invalid API object request!', 404 );
   }
 
   return result;
