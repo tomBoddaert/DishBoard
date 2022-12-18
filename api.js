@@ -29,6 +29,9 @@ const COLOUR_REGEX = /^#[0-9a-f]{6}$/;
 const VALID_GLYPHS
   = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@£$%^&*()[{]};:\'"\\|/?,<.>';
 
+/** Regex to validate recipe instructions */
+const INSTRUCTION_REGEX = /[A-Za-z0-9,.\- ]{1,100}/;
+
 /** Check that the value was provided, otherwise throw an error
  * @param { any } value
  * @param { string } name
@@ -52,6 +55,21 @@ function validateParamType( value, name, type ) {
 
   // If the value is not of the correct type, throw an error
   if ( typeof value !== type )
+    throw new APIError( `Invalid ${ name } parameter provided!` );
+}
+
+/** Check that the value was provided and is an instance of the correct class
+ * @param { any } value
+ * @param { string } name
+ * @param { any } Class
+ * @throws { APIError }
+ */
+function validateParamInstanceOf( value, name, Class ) {
+  // If the value was not provided, throw an error
+  validateParamGiven( value, name );
+
+  // If the value is not of the correct type, throw an error
+  if ( !( value instanceof Class ) )
     throw new APIError( `Invalid ${ name } parameter provided!` );
 }
 
@@ -287,16 +305,29 @@ export function addData( type, options ) {
       if ( !db.existsUser( options.user ) )
         throw new APIError( `User '${ options.user }' not found!` );
 
-      // If the recipe is not provided, throw an error
-      validateParamGiven( options.recipe, 'recipe' );
+      // If the recipe is not provided, or it is not an array, throw an error
+      validateParamInstanceOf( options.recipe, 'recipe', Array );
 
-      // TODO: validate and parse recipe
+      // If the recipe is empty or too long, throw an error
+      if ( options.recipe.length === 0 || options.recipe.length > 20 )
+        throw new APIError( 'Invalid recipe parameter provided!' );
+
+      // If any of the recipe instructions are not strings, or do not match the instruction regex,
+      //  throw an error
+      for ( const instruction of options.recipe )
+        if ( typeof instruction !== 'string' || !INSTRUCTION_REGEX.test( instruction ) )
+          throw new APIError( 'Invalid recipe parameter provided!' );
 
       // If the body is not provided or is not a string, throw an error
       validateParamType( options.body, 'body', 'string' );
 
       // Add the post
-      result = db.addPost( options.user, options.recipe, options.body );
+      result = db.addPost(
+        options.user,
+        Date.now(),
+        options.recipe,
+        options.body
+      );
 
       break;
 
@@ -493,7 +524,7 @@ export function updateData( type, idOptions, options ) {
         // If followingPublic is not provided or is not a boolean, throw an error
         validateParamType( options.followingPublic, 'followingPublic', 'boolean' );
 
-        db.updateUserGlyph( id, options.followingPublic );
+        db.updateUserFollowingPublic( id, options.followingPublic );
       }
 
       // Return true
@@ -517,8 +548,18 @@ export function updateData( type, idOptions, options ) {
 
       // If the recipe is provided, attempt to update it
       if ( options.recipe !== undefined ) {
-        // If the recipe is not valid, throw an error
-        // TODO: validate and parse recipe
+        // If the recipe is not an array, throw an error
+        validateParamInstanceOf( options.recipe, 'recipe', Array );
+
+        // If the recipe is empty or too long, throw an error
+        if ( options.recipe.length === 0 || options.recipe.length > 20 )
+          throw new APIError( 'Invalid recipe parameter provided!' );
+
+        // If any of the recipe instructions are not strings, or do not match the instruction regex,
+        //  throw an error
+        for ( const instruction of options.recipe )
+          if ( typeof instruction !== 'string' || !INSTRUCTION_REGEX.test( instruction ) )
+            throw new APIError( 'Invalid recipe parameter provided!' );
 
         db.updatePostRecipe( id, options.recipe );
       }

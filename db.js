@@ -47,12 +47,21 @@ function setData( newData ) {
 
 
 let onProductionDB = false;
-/** Switches from the testing database to the production database */
+/** Switches from the testing database to the production database
+ * @throws
+ */
 export function useProductionDB() {
   onProductionDB = true;
 
-  // Load the data from the file
-  data = JSON.parse( fs.readFileSync( 'data.json' ) );
+  try {
+    // Load the data from the file
+    data = JSON.parse( fs.readFileSync( 'data.json', 'utf-8' ) );
+  } catch ( e ) {
+    if ( e.code === 'ENOENT' )
+      data = JSON.parse( fs.readFileSync( 'data.json.template', 'utf-8' ) );
+    else
+      throw e;
+  }
 
 
   // Exit code adapted from https://stackoverflow.com/a/14032965
@@ -119,7 +128,20 @@ export function existsUserFollow( id, follow ) {
  */
 export function getUser( id ) {
   return (
-    ( { id: userId, username, colour, glyph } ) => ( { id: userId, username, colour, glyph } )
+    ( { id: userId, username, colour, glyph, posts, following, followingPublic } ) => (
+      {
+        id:     userId,
+        username,
+        colour,
+        glyph,
+        nPosts: posts.length,
+        ...followingPublic
+          ? {
+            nFollowing: following.length
+          }
+          : {}
+      }
+    )
   )( data.users[ id ] );
 }
 
@@ -130,7 +152,7 @@ export function getUser( id ) {
  * @returns { object[] }
  */
 export function getUserPosts( id, n, o ) {
-  return data.users[ id ]?.posts.slice( -n - o, -o || undefined )
+  return data.users[ id ]?.posts.slice( o, o + n )
     .map( postId => getPost( postId ) );
 }
 
@@ -141,7 +163,7 @@ export function getUserPosts( id, n, o ) {
  * @returns { object[] }
  */
 export function getUserFollowing( id, n, o ) {
-  return data.users[ id ]?.following.slice( -n - o, -o || undefined )
+  return data.users[ id ]?.following.slice( o, o + n )
     .map( followingId => getUser( followingId ) );
 }
 
@@ -159,7 +181,7 @@ export function getUserFollowingPublic( id ) {
  * @returns { object[] }
  */
 export function getUsers( n, o ) {
-  return data.userIds.slice( -n - o, -o || undefined )
+  return data.userIds.slice( o, o + n )
     .map( userId => getUser( userId ) );
 }
 
@@ -184,7 +206,7 @@ export function addUser( username, colour, glyph, followingPublic ) {
     followedBy: []
   };
 
-  data.userIds.push( id );
+  data.userIds.unshift( id );
 
   return id;
 }
@@ -194,8 +216,8 @@ export function addUser( username, colour, glyph, followingPublic ) {
  * @param { number } follow
  */
 export function addUserFollow( id, follow ) {
-  data.users[ id ].following.push( follow );
-  data.users[ follow ].followedBy.push( id );
+  data.users[ id ].following.unshift( follow );
+  data.users[ follow ].followedBy.unshift( id );
 }
 
 
@@ -298,7 +320,7 @@ export function getPost( id ) {
  * @returns { object[] }
  */
 export function getPosts( n, o ) {
-  return data.postIds.slice( -n - o, -o || undefined )
+  return data.postIds.slice( o, o + n )
     .map( postId => getPost( postId ) )
     .map( post => {
       return { ...post, user: getUser( post.user ) };
@@ -308,22 +330,23 @@ export function getPosts( n, o ) {
 
 /** Add a new post to the database
  * @param { number } user
+ * @param { number } timestamp
  * @param { string } recipe
  * @param { string } body
  * @returns { number }
  */
-export function addPost( user, recipe, body ) {
+export function addPost( user, timestamp, recipe, body ) {
   const id = data.nextPostId++;
   data.posts[ id ] = {
     id,
     user,
-    timestamp: Date.now(),
+    timestamp,
     recipe,
     body
   };
 
-  data.users[ user ].posts.push( id );
-  data.postIds.push( id );
+  data.users[ user ].posts.unshift( id );
+  data.postIds.unshift( id );
 
   return id;
 }

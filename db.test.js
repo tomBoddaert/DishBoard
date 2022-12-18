@@ -10,8 +10,8 @@ import db from './db';
 // Add some data to the test database
 db.addUser( 'u1', '#868686', 'j', true );
 db.addUser( 'u2', '#686868', 'k', false );
-db.addPost( 0, 'recipe_string', 'hello world' );
-db.addPost( 1, 'recipe_string2', 'hello planet' );
+db.addPost( 0, Date.now(), 'recipe_string', 'hello world' );
+db.addPost( 1, Date.now(), 'recipe_string2', 'hello planet' );
 
 
 test( 'add a user to the database', () => {
@@ -105,7 +105,7 @@ test( 'add a post to the database', () => {
   // Get the newest user
   const [ { id: userId } ] = db.getUsers( 1, 0 );
   // Add a post and get the resulting id
-  const id = db.addPost( userId, expectedPost.recipe, expectedPost.body );
+  const id = db.addPost( userId, Date.now(), expectedPost.recipe, expectedPost.body );
   // Check that the new post exists
   expect( db.existsPost( id ) ).toBe( true );
 

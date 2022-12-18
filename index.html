@@ -61,6 +61,12 @@
       transition: color 0.25s, background-color 0.5s;
     }
 
+    /* Disable defaults */
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
     /* -- Container -- */
     body {
       margin: 20px;
@@ -122,6 +128,139 @@
       align-items: stretch;
       border: solid var(--fg-primary);
       border-radius: 40px;
+      overflow: hidden;
+    }
+
+    main > div {
+      padding: 1rem;
+      width: calc(100% - 2rem);
+    }
+
+    main > div.no-border {
+      padding: 1rem 1rem 0;
+    }
+
+    main > div:not(:last-child, .no-border) {
+      border-bottom: solid var(--fg-primary);
+    }
+
+    /* Post */
+    .post {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      gap: 0.8rem;
+    }
+
+    .post-user {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-right: 0.8rem;
+      border-right: solid var(--fg-secondary);
+      cursor: pointer;
+    }
+
+    .post.no-user > .post-user {
+      display: none;
+    }
+
+    .post-user::before {
+      content: attr(data-user-glyph);
+      font-family: 'Angel-sealing Glyphs';
+      font-size: 4rem;
+    }
+
+    .post-user::after {
+      content: '@' attr(data-user-username);
+      color: var(--text-primary);
+      transition: color 0.25s;
+    }
+
+    .post-user:hover::after {
+      color: var(--text-tertiary2);
+    }
+
+    .post-recipe {
+      font-size: 0.8rem;
+      overflow-wrap: break-word;
+      inline-size: 30%;
+      list-style-position: inside;
+    }
+
+    .post.no-user > .post-recipe {
+      inline-size: 40%;
+    }
+
+    .post-recipe > ::marker {
+      color: var(--text-secondary);
+    }
+
+    .post-body {
+      padding-left: 0.8rem;
+      border-left: solid var(--fg-secondary);
+      overflow-wrap: break-word;
+      inline-size: 40%;
+    }
+
+    .post.no-user > .post-body {
+      inline-size: 50%;
+    }
+
+    .post-body::before {
+      content: attr(data-datetime);
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    /* User */
+    .user {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      column-gap: 0.8rem;
+    }
+
+    .user-glyph {
+      font-family: 'Angel-sealing Glyphs';
+      font-size: 8rem;
+      user-select: none;
+      text-align: center;
+    }
+
+    .user-info {
+      display: flex;
+      width: 80%;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: center;
+      row-gap: 0.8rem;
+    }
+
+    .user-username {
+      font-size: 2rem;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .user-username:hover {
+      color: var(--text-tertiary);
+    }
+
+    .user-figures {
+      display: flex;
+      justify-content: space-evenly;
+      font-size: 1.5rem;
+      color: var(--text-secondary);
+    }
+
+    .user-figures > * {
+      cursor: pointer;
+    }
+
+    .user-figures > *:hover {
+      color: var(--text-tertiary);
     }
 
     /* -- Mobile changes */
@@ -139,6 +278,39 @@
 
       main {
         width: 80%;
+      }
+
+      .post {
+        flex-direction: column;
+      }
+
+      .post-user {
+        flex-direction: row;
+        padding-right: 0;
+        padding-bottom: 0.8rem;
+        column-gap: 0.8rem;
+        border-right: none;
+        border-bottom: solid var(--fg-secondary);
+      }
+
+      .post-recipe, .post.no-user > .post-recipe {
+        inline-size: 100%;
+      }
+
+      .post-body, .post.no-user > .post-body {
+        padding-left: 0;
+        padding-top: 0.8rem;
+        border-left: none;
+        border-top: solid var(--fg-secondary);
+        inline-size: 100%;
+      }
+
+      .user {
+        flex-direction: column;
+      }
+
+      .user-info {
+        display: contents;
       }
     }
   </style>
@@ -177,9 +349,11 @@
       // Get the dark mode setting stored as in local storage (as a string)
       const storedModeText = localStorage.getItem( 'dark' );
       // Convert the string to a boolean | undefined
-      const storedMode = storedModeText === 'true'
-        ? true
-        : storedModeText === 'false' ? false : undefined;
+      const storedMode = {
+        true:  true,
+        false: false
+      }[ storedModeText ];
+
       // If the mode was not set, then default to the browser's dark mode setting
       return storedMode ?? window.matchMedia( '(prefers-color-scheme: dark)' ).matches;
     } )();
@@ -199,29 +373,256 @@
      * @param { MouseEvent } ev
      */
     function navClick( ev ) {
+      // Get the target page from the data attribute
       const targetPage = ev.target.getAttribute( 'data-page-id' );
-      if ( targetPage === null )
-        return;
-
-      if ( targetPage === currentPage )
+      // If the target page has not changed, stop
+      if ( targetPage === null || targetPage === currentPage )
         return;
 
       console.log( `switching to ${ targetPage }` );
+      // Change the page to the target page
       changePage( targetPage );
     }
 
 
+    /* -- Main container -- */
+
+    let main;
+
+
     /* -- Pages -- */
+    
+    const templates = {};
+    let newPageData;
 
     /** Change the page
      * @param { string } targetPage
      */
     function changePage( targetPage ) {
+      // Remove the active class from the current page button
       navButtons[ currentPage ]?.classList.remove( 'active' );
+      // Add the active class to the target page button
       navButtons[ targetPage ]?.classList.add( 'active' );
 
       currentPage = targetPage;
+      // Delete all the children of the main container
+      while ( main.hasChildNodes() )
+        main.removeChild( main.firstChild );
+
+      // Initialise the new page
+      initPage[ currentPage ]()
+        .then( () => {
+          // Unset the new page data
+          newPageData = undefined;
+        } );
     }
+
+    /**
+     * @name InitFunction
+     * @function
+     * @returns { Promise }
+     * @async
+     */
+
+    /** Functions to initialise the pages
+     * @type { Object< string, InitFunction > }
+     */
+    const initPage = {
+      feed: async () => {
+        // Get the latest posts from the server
+        const payload = await fetch( '/api/posts' )
+          .then( res => res.json() );
+
+        // If it was not a success, stop
+        // TODO: add an error here and above if it cannot connect
+        if ( !payload.success )
+          return;
+
+        // Get the data
+        const { data } = payload;
+
+        for ( const post of data ) {
+          // For each post, create a post element and append it to the main container
+          const postElem = construct.post( post );
+          main.appendChild( postElem );
+        }
+      },
+      users: async () => {
+        // Get the latest users from the server
+        const payload = await fetch( '/api/users' )
+          .then( res => res.json() );
+
+        // If it was not a success stop
+        // TODO: deal with error
+        if ( !payload.success )
+          return;
+
+        // Get the data
+        const { data } = payload;
+
+        for ( const user of data ) {
+          // For each user, create a user and append it to the main container
+          const userElem = construct.user( user );
+          main.appendChild( userElem );
+        }
+      },
+      user: async () => {
+        // Get the latest users from the server
+        const payload = await fetch( `/api/user?id=${ newPageData[ 0 ] }&${ newPageData[ 1 ] }` )
+          .then( res => res.json() );
+
+        // Get the data
+        const { data } = payload;
+
+        // Create the user element and append it to the main container
+        const userElem = construct.user( data );
+        main.appendChild( userElem );
+
+        let textElem;
+        switch ( newPageData[ 1 ] ) {
+          case 'posts':
+            textElem = document.createElement( 'div' );
+            textElem.classList.add( 'no-border' );
+            textElem.innerText = 'Posts:';
+            textElem.style.fontSize = '1.5rem';
+            main.appendChild( textElem );
+
+            for ( const post of data.posts ) {
+              // For each post, create a post element and append it to the main container
+              const postElem = construct.post( post );
+              postElem.classList.add( 'no-user' );
+              main.appendChild( postElem );
+            }
+
+            break;
+
+          case 'following':
+            textElem = document.createElement( 'div' );
+            textElem.classList.add( 'no-border' );
+            textElem.innerText = 'Following:';
+            textElem.style.fontSize = '1.5rem';
+            main.appendChild( textElem );
+
+            for ( const following of data.following ) {
+              // For each user, create a user element and append it to the main container
+              const followingElem = construct.user( following );
+              followingElem.classList.add( 'no-border' );
+              main.appendChild( followingElem );
+            }
+
+            break;
+
+          default:
+            break;
+        }
+      }
+    };
+
+    const construct = {
+      post: data => {
+        // Clone the Post template
+        const postElem = templates.Post.content.cloneNode( true )
+          .children[ 0 ];
+
+        // Set the id data attribute
+        postElem.setAttribute( 'data-post-id', data.id.toString() );
+
+        // Get the user element on the post
+        const userElem = postElem.getElementsByClassName( 'post-user' )[ 0 ];
+        // Set the user's data attributes
+        userElem.setAttribute( 'data-user-glyph', data.user.glyph );
+        userElem.setAttribute( 'data-user-username', data.user.username );
+        // Set the user's colour
+        userElem.style.color = data.user.colour;
+
+        userElem.addEventListener( 'click', () => {
+          newPageData = [ data.user.id, 'posts' ];
+          changePage( 'user' );
+        } );
+
+        // Set the recipe text
+        const recipeElem = postElem.getElementsByClassName( 'post-recipe' )[ 0 ];
+        for ( const instruction of data.recipe ) {
+          // Create a new list entry for the instruction and add it to the list
+          const instructionElem = document.createElement( 'li' );
+          instructionElem.innerText = instruction;
+          recipeElem.appendChild( instructionElem );
+        }
+
+        // Get the body element
+        const bodyElem = postElem.getElementsByClassName( 'post-body' )[ 0 ];
+        bodyElem.innerText = data.body;
+        const postDate = new Date( data.timestamp );
+        bodyElem.setAttribute( 'data-datetime', `${
+          postDate.getUTCDate().toString()
+            .padStart( 2, '0' )
+        }/${
+          ( postDate.getUTCMonth() + 1 ).toString().padStart( 2, '0' )
+        }/${
+          postDate.getUTCFullYear()
+        } ${
+          postDate.getUTCHours().toString()
+            .padStart( 2, '0' )
+        }:${
+          postDate.getUTCMinutes().toString()
+            .padStart( 2, '0' )
+        }` );
+
+        // Return the saturated element
+        return postElem;
+      },
+      user: data => {
+        // Clone the User template
+        const userElem = templates.User.content.cloneNode( true )
+          .children[ 0 ];
+
+        // Set the id data attribute
+        userElem.setAttribute( 'data-user-id', data.id.toString() );
+
+        // Get the glyph element
+        const glyphElem = userElem.getElementsByClassName( 'user-glyph' )[ 0 ];
+        // Set the glyph
+        glyphElem.innerText = data.glyph;
+        // Set the colour
+        glyphElem.style.color = data.colour;
+
+        // Get the info element
+        const infoElem = userElem.getElementsByClassName( 'user-info' )[ 0 ];
+
+        // Set the username
+        const usernameElem = infoElem.getElementsByClassName( 'user-username' )[ 0 ];
+        usernameElem.innerText = `@${ data.username }`;
+        usernameElem.addEventListener( 'click', () => {
+          newPageData = [ data.id, 'posts' ];
+          changePage( 'user' );
+        } );
+
+        // Get the figures element
+        const figuresElem = infoElem.getElementsByClassName( 'user-figures' )[ 0 ];
+
+        // Set the number of posts
+        const nPostsElem = figuresElem.getElementsByClassName( 'user-nposts' )[ 0 ];
+        nPostsElem.innerText = `Posts: ${ data.nPosts }`;
+        nPostsElem.addEventListener( 'click', () => {
+          newPageData = [ data.id, 'posts' ];
+          changePage( 'user' );
+        } );
+
+        // Set the number of people the user is following, or if private, remove the
+        //  number of posts element
+        const nFollowingElem = figuresElem.getElementsByClassName( 'user-nfollowing' )[ 0 ];
+        if ( data.nFollowing !== undefined ) {
+          nFollowingElem.innerText = `Following: ${ data.nFollowing }`;
+          nFollowingElem.addEventListener( 'click', () => {
+            newPageData = [ data.id, 'following' ];
+            changePage( 'user' );
+          } );
+        } else
+          nFollowingElem.remove();
+
+        return userElem;
+      }
+    };
 
 
     /* -- On load -- */
@@ -254,11 +655,49 @@
       } )();
 
       nav.addEventListener( 'click', navClick );
+
+
+      /* -- Main container -- */
+
+      // Get the main container
+      main = document.getElementsByTagName( 'main' )[ 0 ];
+
+
+      /* -- Pages -- */
+
+      // Get the templates
+      const templateElems = document.getElementsByTagName( 'template' );
+      for ( const template of templateElems )
+        templates[ template.getAttribute( 'id' ) ] = template;
+
+      // Load the initial page
+      initPage[ currentPage ]();
     } );
   </script>
 </head>
 
 <body>
+  <template id="Post">
+    <div class="post">
+      <span class="post-user"></span>
+      <ol class="post-recipe"></ol>
+      <span class="post-body"></span>
+    </div>
+  </template>
+
+  <template id="User">
+    <div class="user">
+      <span class="user-glyph"></span>
+      <span class="user-info">
+        <span class="user-username"></span>
+        <span class="user-figures">
+          <span class="user-nposts"></span>
+          <span class="user-nfollowing"></span>
+        </span>
+      </span>
+    </div>
+  </template>
+
   <header>
   <span id="dm-selector">🌑</span>
   <nav>
