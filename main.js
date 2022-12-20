@@ -9,11 +9,15 @@ import { app } from './server.js';
 
 const args = process.argv.slice( 2 );
 
-// If the argument is provided, switch to the production database
+// Listen for requests
+app.listen( 8080, () => console.log( 'Listening on http://localhost:8080/' ) );
+
+
+// If the argument is provided, switch to the production database, otherwise
+//  add some example data
 if ( args.includes( '--production' ) || args.includes( '-p' ) )
   useProductionDB();
 else {
-  // Add some example data
   const ZERO = db.addUser( 'userZero', '#888888', 'a', true );
   const ONE = db.addUser( 'userOne', '#cc8888', 'b', true );
   const TWO = db.addUser( 'userTwo', '#88cc88', 'c', true );
@@ -64,6 +68,3 @@ else {
     'Fill with Coca-Cola'
   ], 'Welcome to DrunkShare\nThis \'recipe\' may take a while to taste good.' );
 }
-
-// Listen for requests
-app.listen( 8080, () => console.log( 'Listening on http://localhost:8080/' ) );

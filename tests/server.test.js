@@ -7,9 +7,9 @@
 import fs from 'fs/promises';
 import request from 'supertest';
 
-import { getData } from './api.js';
-import db from './db';
-import { app } from './server.js';
+import { getData } from '../api.js';
+import db from '../db';
+import { app } from '../server.js';
 
 
 // Add some data to the test database

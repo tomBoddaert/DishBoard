@@ -34,23 +34,14 @@ export function stringify( ...args ) {
 }
 
 
-/** Set the testing data, this is removed in production
- * @param { object } newData
- */
-function setData( newData ) {
-  // Don't replace the production database by accident
-  if ( onProductionDB )
-    return;
-
-  data = newData;
-}
-
-
 let onProductionDB = false;
 /** Switches from the testing database to the production database
  * @throws
  */
 export function useProductionDB() {
+  if ( onProductionDB )
+    return;
+
   onProductionDB = true;
 
   try {
@@ -388,7 +379,6 @@ export function updatePostBody( id, body ) {
 
 export default {
   stringify,
-  setData,
   useProductionDB,
 
   existsUser,

@@ -30,7 +30,7 @@
       --text-primary: #000;
       --text-secondary: #aaa;
       --text-tertiary: #99f;
-      --text-tertiary2: #339;
+      /* --text-tertiary2: #339; */
     }
 
     :root.dark {
@@ -47,24 +47,24 @@
       --text-primary: #eee;
       --text-secondary: #666;
       --text-tertiary: #99f;
-      --text-tertiary2: #ccf;
+      /* --text-tertiary2: #ccf; */
     }
 
     /* -- Top level styling -- */
+    /* Disable defaults */
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    
     html {
       font-size: 16px;
       font-family: Roboto, sans-serif;
       color: var(--text-primary);
       background-color: var(--bg-primary);
-
+      
       /* Add colour transitions for everything */
       transition: color 0.25s, background-color 0.5s;
-    }
-
-    /* Disable defaults */
-    * {
-      margin: 0;
-      padding: 0;
     }
 
     /* -- Container -- */
@@ -178,7 +178,7 @@
     }
 
     .post-user:hover::after {
-      color: var(--text-tertiary2);
+      color: var(--text-tertiary);
     }
 
     .post-recipe {
@@ -220,6 +220,10 @@
       flex-direction: row;
       align-items: stretch;
       column-gap: 0.8rem;
+    }
+
+    .user * {
+      transition: color 0.25s, background-color 0.5s;
     }
 
     .user-glyph {
@@ -557,7 +561,8 @@
           postDate.getUTCDate().toString()
             .padStart( 2, '0' )
         }/${
-          ( postDate.getUTCMonth() + 1 ).toString().padStart( 2, '0' )
+          ( postDate.getUTCMonth() + 1 ).toString()
+            .padStart( 2, '0' )
         }/${
           postDate.getUTCFullYear()
         } ${

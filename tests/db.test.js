@@ -4,7 +4,7 @@
  */
 
 
-import db from './db';
+import db from '../db';
 
 
 // Add some data to the test database
