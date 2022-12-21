@@ -30,7 +30,7 @@ const VALID_GLYPHS
   = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@£$%^&*()[{]};:\'"\\|/?,<.>';
 
 /** Regex to validate recipe instructions */
-const INSTRUCTION_REGEX = /[A-Za-z0-9,.\- ]{1,100}/;
+const INSTRUCTION_REGEX = /^[A-Za-z0-9,.\- ]{1,100}$/;
 
 /** Check that the value was provided, otherwise throw an error
  * @param { any } value
@@ -231,6 +231,9 @@ export function getData( type, options ) {
       break;
 
     case 'log':
+      if ( db.usingProductionDB() )
+        throw new APIError( 'Invalid API object request!', 404 );
+
       // Log the data (for debugging)
       console.log( `log: ${ db.stringify( undefined, 2 ) }` );
       result = true;
@@ -277,8 +280,8 @@ export function addData( type, options ) {
       // If the glyph is not valid, throw an error
       if (
         typeof options.glyph !== 'string'
-                || options.glyph.length !== 1
-                || !VALID_GLYPHS.includes( options.glyph )
+          || options.glyph.length !== 1
+          || !VALID_GLYPHS.includes( options.glyph )
       )
         throw new APIError( 'Invalid glyph provided!' );
 
@@ -511,8 +514,8 @@ export function updateData( type, idOptions, options ) {
         // If the glyph is not valid, throw an error
         if (
           typeof options.glyph !== 'string'
-                    || options.glyph.length !== 1
-                    || !VALID_GLYPHS.includes( options.glyph )
+            || options.glyph.length !== 1
+            || !VALID_GLYPHS.includes( options.glyph )
         )
           throw new APIError( 'Invalid glyph provided!' );
 

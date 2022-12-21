@@ -35,6 +35,14 @@ export function stringify( ...args ) {
 
 
 let onProductionDB = false;
+
+/** Check if the production database is being used
+ * @returns { boolean }
+ */
+export function usingProductionDB() {
+  return onProductionDB;
+}
+
 /** Switches from the testing database to the production database
  * @throws
  */
@@ -379,6 +387,7 @@ export function updatePostBody( id, body ) {
 
 export default {
   stringify,
+  usingProductionDB,
   useProductionDB,
 
   existsUser,
