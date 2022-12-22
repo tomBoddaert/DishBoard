@@ -160,7 +160,7 @@ test( 'GET /api/user, with invalid id', async () => {
         // Check that the response is the correct error
         expect( res.body ).toMatchObject( {
           success: false,
-          message: 'No id parameter provided!'
+          message: 'No id or username parameter provided!'
         } );
       } )
   );

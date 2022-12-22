@@ -152,15 +152,35 @@ export function getData( type, options ) {
     case 'user':
       console.log( `user: ${ JSON.stringify( options ) }` );
 
-      // Parse the id as an integer, if it was not provided or is not an integer,
-      //  throw an error
-      id = validateParamParseInt( options.id, 'id' );
+      // If neither the id or username parameters are provided, throw an error
+      if ( options.id === undefined && options.username === undefined )
+        throw new APIError( 'No id or username parameter provided!' );
 
-      // If the user does not exist, throw an error
-      if ( !db.existsUser( id ) )
-        throw new APIError( `User '${ id }' not found!` );
+      // If both the id and username parameters are provided, throw an error
+      if ( options.id !== undefined && options.username !== undefined )
+        throw new APIError( 'username and id parameters both provided!' );
 
-      result = db.getUser( id );
+      if ( options.id !== undefined ) {
+        // Parse the id as an integer, if it was not provided or is not an integer,
+        //  throw an error
+        id = validateParamParseInt( options.id, 'id' );
+
+        // If the user does not exist, throw an error
+        if ( !db.existsUser( id ) )
+          throw new APIError( `User '${ id }' not found!` );
+
+        result = db.getUser( id );
+      } else {
+        // If the username is not valid, throw an error
+        if ( typeof options.username !== 'string' || !USERNAME_REGEX.test( options.username ) )
+          throw new APIError( 'Invalid username provided!' );
+
+        // If the user does not exist, throw an error
+        if ( !db.existsUsername( options.username ) )
+          throw new APIError( `User '${ options.username }' not found!` );
+
+        result = db.getUserByUsername( options.username );
+      }
 
       // If the user's posts were requested, get them
       if ( 'posts' in options ) {
@@ -266,6 +286,10 @@ export function addData( type, options ) {
       // If the username is not valid, throw an error
       if ( typeof options.username !== 'string' || !USERNAME_REGEX.test( options.username ) )
         throw new APIError( 'Invalid username provided!' );
+
+      // If the username is already in use, throw an error
+      if ( db.existsUsername( options.username ) )
+        throw new APIError( 'Username already in use!' );
 
       // If the color is not provided, throw an error
       validateParamGiven( options.colour, 'colour' );
@@ -493,9 +517,13 @@ export function updateData( type, idOptions, options ) {
         // If the username is not valid, throw an error
         if (
           typeof options.username !== 'string'
-                    || !USERNAME_REGEX.test( options.username )
+            || !USERNAME_REGEX.test( options.username )
         )
           throw new APIError( 'Invalid username provided!' );
+
+        // If the username is already in use, throw an error
+        if ( db.existsUsername( options.username ) )
+          throw new APIError( 'Username already in use!' );
 
         db.updateUserUsername( id, options.username );
       }

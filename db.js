@@ -111,6 +111,15 @@ export function existsUser( id ) {
   return id in data.users;
 }
 
+/** Check if a username is in use
+ * @param { string } username
+ * @returns { boolean }
+ */
+export function existsUsername( username ) {
+  return Object.values( data.users )
+    .some( user => user.username === username );
+}
+
 /** Check if a user is following another user
  * @param { number } id
  * @param { number } follow
@@ -142,6 +151,15 @@ export function getUser( id ) {
       }
     )
   )( data.users[ id ] );
+}
+
+/** Get a user by username
+ * @param { string } username
+ * @returns { object }
+ */
+export function getUserByUsername( username ) {
+  return Object.values( data.users )
+    .find( user => user.username === username );
 }
 
 /** Get a user's last n posts with an offset of o
@@ -391,8 +409,10 @@ export default {
   useProductionDB,
 
   existsUser,
+  existsUsername,
   existsUserFollow,
   getUser,
+  getUserByUsername,
   getUserPosts,
   getUserFollowing,
   getUserFollowingPublic,

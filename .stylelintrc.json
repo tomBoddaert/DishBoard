@@ -10,7 +10,7 @@
   "rules": {
     "string-quotes": "single",
 
-    "no-descending-specificity": true,
+    "no-descending-specificity": null,
     "declaration-block-no-duplicate-custom-properties": true,
     "declaration-block-no-duplicate-properties": true,
     "font-family-no-duplicate-names": true,
@@ -45,16 +45,18 @@
     "color-named": "never",
     "declaration-no-important": true,
     "function-url-no-scheme-relative": true,
-    "function-comma-newline-before": "always",
     "value-list-comma-newline-before": "never-multi-line",
     "declaration-block-semicolon-newline-before": "never-multi-line",
     "block-closing-brace-space-after": ["always-single-line", "never-multi-line"],
     "block-opening-brace-newline-before": ["never-single-line", "never-multi-line"],
-    "selector-list-comma-space-after": "always",
-    "selector-list-comma-space-before": "always",
+    "selector-list-comma-space-after": "always-single-line",
+    "selector-list-comma-space-before": "never",
     "media-query-list-comma-newline-before": "always",
     "at-rule-semicolon-space-before": "never",
     "linebreaks": "unix",
-    "no-extra-semicolons": true
+    "no-extra-semicolons": true,
+
+    "selector-attribute-brackets-space-inside": "always",
+    "selector-list-comma-newline-after": "always"
   }
 }

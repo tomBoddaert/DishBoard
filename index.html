@@ -25,12 +25,14 @@
       /* foreground colours */
       --fg-primary: #aaa;
       --fg-secondary: #bbb;
+      --fg-tertiary: #99d;
+      --fg-error: #f88;
 
       /* text colours */
       --text-primary: #000;
-      --text-secondary: #aaa;
-      --text-tertiary: #99f;
-      /* --text-tertiary2: #339; */
+      --text-secondary: #888;
+      --text-tertiary: #88e;
+      --text-error: #f88;
     }
 
     :root.dark {
@@ -42,27 +44,30 @@
       /* foreground colours */
       --fg-primary: #444;
       --fg-secondary: #333;
+      --fg-tertiary: #77b;
+      --fg-error: #a66;
 
       /* text colours */
       --text-primary: #eee;
-      --text-secondary: #666;
+      --text-secondary: #8a8a8a;
       --text-tertiary: #99f;
-      /* --text-tertiary2: #ccf; */
+      --text-error: #f88;
     }
 
     /* -- Top level styling -- */
+
     /* Disable defaults */
     * {
       margin: 0;
       padding: 0;
     }
-    
+
     html {
       font-size: 16px;
       font-family: Roboto, sans-serif;
       color: var(--text-primary);
       background-color: var(--bg-primary);
-      
+
       /* Add colour transitions for everything */
       transition: color 0.25s, background-color 0.5s;
     }
@@ -93,6 +98,7 @@
       display: flex;
       flex-direction: row;
       justify-content: space-evenly;
+      align-items: center;
       column-gap: 5rem;
       font-family: Comfortaa, sans-serif;
       color: var(--text-secondary);
@@ -144,7 +150,150 @@
       border-bottom: solid var(--fg-primary);
     }
 
-    /* Post */
+    /* -- Forms -- */
+    form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    label {
+      font-size: 1.25rem;
+    }
+
+    label > input {
+      display: block;
+      margin-top: 0.4rem;
+    }
+
+    input {
+      background-color: transparent;
+    }
+
+    input[ type='text' ] {
+      padding: 0.4rem;
+      border: solid var(--fg-secondary);
+      border-radius: 10px;
+      font-size: 1rem;
+      color: inherit;
+      transition: border-color 0.25s;
+    }
+
+    input[ type='text' ]:focus {
+      outline: none;
+      border-color: var(--fg-tertiary);
+    }
+
+    input[ type='text' ].invalid {
+      border-color: var(--fg-error);
+    }
+
+    input[ type='checkbox' ] {
+      appearance: none;
+      display: flex;
+      width: 2rem;
+      height: 2rem;
+      margin: 0;
+      border: solid var(--fg-primary);
+      border-radius: 0.5rem;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    input[ type='checkbox' ]::after {
+      content: '';
+      position: relative;
+      width: 0.6rem;
+      height: 1.8rem;
+      border-bottom: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-radius: 0.2rem;
+      transform: translate(80%, -25%) rotate(45deg);
+      transition: border-color 0.1s;
+    }
+
+    input[ type='checkbox' ]:checked::after {
+      border-color: var(--fg-tertiary);
+    }
+
+    label:has(input[ type='checkbox' ]) {
+      display: contents;
+    }
+
+    input[ type='color' ] {
+      width: 4rem;
+      height: 2rem;
+      border: none;
+    }
+
+    input:is([ type='submit' ], [ type='button' ]) {
+      padding: 0.6rem;
+      border: solid var(--fg-secondary);
+      border-radius: 20px;
+      color: inherit;
+      font-size: inherit;
+      cursor: pointer;
+      transition: color 0.25s;
+    }
+
+    input:is([ type='submit' ], [ type='button' ]):hover {
+      color: var(--text-tertiary);
+    }
+
+    .error {
+      font-size: 1.25rem;
+      color: var(--text-error);
+    }
+
+    /* -- Profile -- */
+    nav > [ data-page-id='profile' ] {
+      display: flex;
+      gap: 0.2rem;
+      align-items: center;
+      padding: 0.6rem 0.8rem;
+      border: solid var(--fg-secondary);
+      border-radius: 20px;
+      font-size: 1.5rem;
+    }
+
+    nav > [ data-page-id='profile' ]::before {
+      content: attr(data-user-glyph);
+      font-family: 'Angel-sealing Glyphs';
+      font-size: 4rem;
+      color: var(--glyph-colour);
+    }
+
+    nav > [ data-page-id='profile' ]::after {
+      content: attr(data-user-username);
+      font-family: Roboto, sans-serif;
+      transition: color 0.25s;
+    }
+
+    label:has(.sign-up-glyph) {
+      display: contents;
+    }
+
+    .sign-up-glyph-input {
+      display: flex;
+      gap: 0.8rem;
+      font-family: Comfortaa, sans-serif;
+      font-size: 6rem;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* Extra selectors to increase specificity */
+    input[ type='text' ].sign-up-glyph {
+      width: 6.8rem;
+      border: none;
+      font-family: 'Angel-sealing Glyphs';
+      font-size: 8rem;
+      cursor: default;
+    }
+
+    /* -- Post -- */
     .post {
       display: flex;
       flex-direction: row;
@@ -169,11 +318,11 @@
       content: attr(data-user-glyph);
       font-family: 'Angel-sealing Glyphs';
       font-size: 4rem;
+      color: var(--glyph-colour);
     }
 
     .post-user::after {
       content: '@' attr(data-user-username);
-      color: var(--text-primary);
       transition: color 0.25s;
     }
 
@@ -214,7 +363,7 @@
       color: var(--text-secondary);
     }
 
-    /* User */
+    /* -- User -- */
     .user {
       display: flex;
       flex-direction: row;
@@ -223,14 +372,16 @@
     }
 
     .user * {
-      transition: color 0.25s, background-color 0.5s;
+      transition: color 0.25s;
     }
 
-    .user-glyph {
+    .user::before {
+      content: attr(data-user-glyph);
       font-family: 'Angel-sealing Glyphs';
       font-size: 8rem;
       user-select: none;
       text-align: center;
+      color: var(--glyph-colour);
     }
 
     .user-info {
@@ -277,11 +428,15 @@
         padding: 1.5rem 1rem;
         flex-direction: column;
         row-gap: 1rem;
-        transition: height 1s;
       }
 
       main {
         width: 80%;
+      }
+
+      nav > [ data-page-id='profile' ] {
+        flex-direction: column;
+        padding: 0.8rem;
       }
 
       .post {
@@ -297,11 +452,13 @@
         border-bottom: solid var(--fg-secondary);
       }
 
-      .post-recipe, .post.no-user > .post-recipe {
+      .post-recipe,
+      .post.no-user > .post-recipe {
         inline-size: 100%;
       }
 
-      .post-body, .post.no-user > .post-body {
+      .post-body,
+      .post.no-user > .post-body {
         padding-left: 0;
         padding-top: 0.8rem;
         border-left: none;
@@ -320,6 +477,43 @@
   </style>
 
   <script>
+    /* -- Constants -- */
+
+    /** Regex to validate usernames */
+    const USERNAME_REGEX = /^[a-zA-Z0-9_.\-+=!*|]{1,20}$/;
+    /** The list of valid glyphs */
+    const VALID_GLYPHS
+      = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@£$%^&*()[{]};:\'"\\|/?,<.>';
+
+    /** Regex to validate recipe instructions */
+    const INSTRUCTION_REGEX = /^[A-Za-z0-9,.\- ]{1,100}$/;
+
+
+    /* -- Request helper functions -- */
+    /** Add a catch callback to make the response an error, with a connection message
+     * @param { Promise } request
+     * @returns { Promise }
+     */
+    function jsonBodyErrorToResponse( request ) {
+      return request
+        .then( res => res.json() )
+        .catch( () => ( {
+          success: false,
+          message: 'Connection error!\nMake sure you are connected to a network\n\tthen try again'
+        } ) );
+    }
+
+    /** Add the error to the main container
+     * @param { string } message
+     */
+    function errorToMain( message ) {
+      const errorElem = document.createElement( 'span' );
+      errorElem.classList.add( 'error' );
+      errorElem.innerText = message;
+      main.appendChild( errorElem );
+    }
+
+
     /* -- Dark mode -- */
     /* (this code was originally written for https://github.com/stevenaeola/proglabs_js/pull/39) */
 
@@ -365,6 +559,32 @@
     // Set the initial theme
     if ( darkMode )
       setTheme( darkMode );
+
+
+    /* -- Profile -- */
+
+    let loggedInId;
+
+    /** Login to a user
+     * @param { object } user
+     */
+    function login( user ) {
+      loggedInId = user.id;
+
+      // Get the profile navbar element
+      const profileElem = navButtons.profile;
+
+      // Remove the login text
+      profileElem.innerText = '';
+
+      // Set the username data attribute
+      profileElem.setAttribute( 'data-user-username', `@${ user.username }` );
+
+      // Set the glyph data attribute
+      profileElem.setAttribute( 'data-user-glyph', user.glyph );
+      // Set the user's colour
+      profileElem.style.setProperty( '--glyph-colour', user.colour );
+    }
 
 
     /* -- Nav bar -- */
@@ -432,18 +652,44 @@
      * @type { Object< string, InitFunction > }
      */
     const initPage = {
+      profile: async () => {
+        // If the logged in id is undefined, show the login page
+        if ( loggedInId === undefined ) {
+          const loginElem = construct.login();
+
+          main.appendChild( loginElem );
+          return;
+        }
+
+        // Get the user from the server
+        const response = await jsonBodyErrorToResponse(
+          fetch( `/api/user?id=${ loggedInId }` )
+        );
+
+        // If the response is an error, show it
+        if ( !response.success )
+          return errorToMain( response.message );
+
+        const profileElem = construct.user( response.data );
+        main.appendChild( profileElem );
+      },
+      signUp: async () => {
+        const signUpElem = construct.signUp();
+
+        main.appendChild( signUpElem );
+      },
       feed: async () => {
         // Get the latest posts from the server
-        const payload = await fetch( '/api/posts' )
-          .then( res => res.json() );
+        const response = await jsonBodyErrorToResponse(
+          fetch( '/api/posts' )
+        );
 
-        // If it was not a success, stop
-        // TODO: add an error here and above if it cannot connect
-        if ( !payload.success )
-          return;
+        // If the response is an error, show it
+        if ( !response.success )
+          return errorToMain( response.message );
 
         // Get the data
-        const { data } = payload;
+        const { data } = response;
 
         for ( const post of data ) {
           // For each post, create a post element and append it to the main container
@@ -453,16 +699,16 @@
       },
       users: async () => {
         // Get the latest users from the server
-        const payload = await fetch( '/api/users' )
-          .then( res => res.json() );
+        const response = await jsonBodyErrorToResponse(
+          fetch( '/api/users' )
+        );
 
-        // If it was not a success stop
-        // TODO: deal with error
-        if ( !payload.success )
-          return;
+        // If the response is an error, show it
+        if ( !response.success )
+          return errorToMain( response.message );
 
         // Get the data
-        const { data } = payload;
+        const { data } = response;
 
         for ( const user of data ) {
           // For each user, create a user and append it to the main container
@@ -471,12 +717,21 @@
         }
       },
       user: async () => {
-        // Get the latest users from the server
-        const payload = await fetch( `/api/user?id=${ newPageData[ 0 ] }&${ newPageData[ 1 ] }` )
-          .then( res => res.json() );
+        // TODO: decide what to do here
+        // // If the user is the logged in user, go to the profile page
+        // if ( newPageData[ 0 ] === loggedInId )
+        //   return changePage( 'profile' );
+
+        // Get the user from the server
+        const response = await jsonBodyErrorToResponse(
+          fetch( `/api/user?id=${ newPageData[ 0 ] }&${ newPageData[ 1 ] }` )
+        );
+
+        if ( !response.success )
+          return errorToMain( response.message );
 
         // Get the data
-        const { data } = payload;
+        const { data } = response;
 
         // Create the user element and append it to the main container
         const userElem = construct.user( data );
@@ -523,6 +778,183 @@
     };
 
     const construct = {
+      login: () => {
+        // Clone the Login template
+        const loginElem = templates.Login.content.cloneNode( true )
+          .children[ 0 ];
+
+        loginElem.addEventListener( 'submit', async ( { submitter } ) => {
+          const action = submitter.getAttribute( 'data-login-action' );
+
+          const formData = new FormData( loginElem );
+
+          let response;
+
+          switch ( action ) {
+            case 'login':
+              // Validate the username
+              if ( !USERNAME_REGEX.test( formData.get( 'username' ) ) ) {
+                loginElem.getElementsByClassName( 'error' )[ 0 ]
+                  .innerText = 'Invalid username!';
+                return;
+              }
+
+              response = await jsonBodyErrorToResponse(
+                fetch( `/api/user?username=${ formData.get( 'username' ) }` )
+              );
+
+              // If the user was not found, or there was another error,
+              //  show the error
+              if ( !response.success ) {
+                loginElem.getElementsByClassName( 'error' )[ 0 ]
+                  .innerText = response.message;
+                return;
+              }
+
+              login( response.data );
+              changePage( 'profile' );
+
+              break;
+
+            case 'signUp':
+              // Validate the username
+              if (
+                !USERNAME_REGEX.test( formData.get( 'username' ) )
+                && formData.get( 'username' ) !== ''
+              ) {
+                loginElem.getElementsByClassName( 'error' )[ 0 ]
+                  .innerText = 'Invalid username!';
+                return;
+              }
+
+              newPageData = formData.get( 'username' );
+
+              changePage( 'signUp' );
+              break;
+
+            default:
+              break;
+          }
+        } );
+
+        const usernameElem = loginElem.querySelector( '[name="username"]' );
+        usernameElem.addEventListener( 'input', () => {
+          const username = usernameElem.value;
+
+          // Validate the typed username, if invalid, make the border red
+          if ( USERNAME_REGEX.test( username ) )
+            usernameElem.classList.remove( 'invalid' );
+          else
+            usernameElem.classList.add( 'invalid' );
+        } );
+
+        return loginElem;
+      },
+      signUp: () => {
+        // Clone the SignUp template
+        const signUpElem = templates.SignUp.content.cloneNode( true )
+          .children[ 0 ];
+
+        signUpElem.addEventListener( 'submit', async () => {
+          const formData = new FormData( signUpElem );
+
+          // Validate the username
+          if ( !USERNAME_REGEX.test( formData.get( 'username' ) ) ) {
+            signUpElem.getElementsByClassName( 'error' )[ 0 ]
+              .innerText = 'Invalid username!';
+            return;
+          }
+
+          // Create the new user
+          const newUser = {
+            username:        formData.get( 'username' ),
+            glyph:           formData.get( 'glyph' ),
+            colour:          formData.get( 'colour' ),
+            followingPublic: formData.get( 'followingPublic' ) === 'on'
+          };
+
+          // Send the request to create a new user
+          const response = await jsonBodyErrorToResponse(
+            fetch(
+              '/api/user',
+              {
+                method:  'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify( newUser )
+              }
+            )
+          );
+
+          // If there was an error, show it
+          if ( !response.success ) {
+            signUpElem.getElementsByClassName( 'error' )[ 0 ]
+              .innerText = response.message;
+            return;
+          }
+
+          // Set the id to the returned id
+          newUser.id = response.data;
+
+          login( newUser );
+          changePage( 'profile' );
+        } );
+
+        // Get the username input
+        const usernameElem = signUpElem.querySelector( '[name="username"]' );
+        // Set the username to the saved one, if it exists
+        if ( newPageData )
+          usernameElem.value = newPageData;
+
+        // When the username is changed, validate it
+        usernameElem.addEventListener( 'input', () => {
+          const username = usernameElem.value;
+
+          // Validate the typed username, if invalid, make the border red
+          if ( USERNAME_REGEX.test( username ) )
+            usernameElem.classList.remove( 'invalid' );
+          else
+            usernameElem.classList.add( 'invalid' );
+        } );
+
+        // Get the glyph input
+        const glyphInputElem = signUpElem.getElementsByClassName( 'sign-up-glyph-input' )[ 0 ];
+        // Get the glyph
+        const glyphElem = glyphInputElem.getElementsByClassName( 'sign-up-glyph' )[ 0 ];
+
+        // Randomise the glyph order
+        const glyphs = [ ...VALID_GLYPHS ].sort( () => Math.random() - 0.5 );
+        // Set the current glyph to the first glyph
+        let glyphIndex = 0;
+        glyphElem.value = glyphs[ glyphIndex ];
+
+        // When the last or next buttons are pressed, change the glyph
+        glyphInputElem.addEventListener( 'click', ( { target } ) => {
+          const indexDelta = target.classList.contains( 'sign-up-glyph-last' )
+            ? -1
+            : target.classList.contains( 'sign-up-glyph-next' )
+              ? 1
+              : 0;
+
+          glyphIndex = ( glyphIndex + indexDelta + glyphs.length ) % glyphs.length;
+
+          glyphElem.value = glyphs[ glyphIndex ];
+        } );
+
+        // Get the colour input
+        const colourElem = signUpElem.querySelector( '[name="colour"]' );
+        // Set the initial colour
+        colourElem.value = darkMode ? '#dddddd' : '#333333';
+        glyphElem.style.color = colourElem.value;
+
+        // When the colour is changed, update the glyph
+        colourElem.addEventListener( 'input', () => {
+          glyphElem.style.color = colourElem.value;
+        } );
+
+        return signUpElem;
+      },
       post: data => {
         // Clone the Post template
         const postElem = templates.Post.content.cloneNode( true )
@@ -537,7 +969,7 @@
         userElem.setAttribute( 'data-user-glyph', data.user.glyph );
         userElem.setAttribute( 'data-user-username', data.user.username );
         // Set the user's colour
-        userElem.style.color = data.user.colour;
+        userElem.style.setProperty( '--glyph-colour', data.user.colour );
 
         userElem.addEventListener( 'click', () => {
           newPageData = [ data.user.id, 'posts' ];
@@ -584,12 +1016,10 @@
         // Set the id data attribute
         userElem.setAttribute( 'data-user-id', data.id.toString() );
 
-        // Get the glyph element
-        const glyphElem = userElem.getElementsByClassName( 'user-glyph' )[ 0 ];
-        // Set the glyph
-        glyphElem.innerText = data.glyph;
-        // Set the colour
-        glyphElem.style.color = data.colour;
+        // Set the glyph attribute
+        userElem.setAttribute( 'data-user-glyph', data.glyph );
+        // Set the glyph colour attribute
+        userElem.style.setProperty( '--glyph-colour', data.colour );
 
         // Get the info element
         const infoElem = userElem.getElementsByClassName( 'user-info' )[ 0 ];
@@ -682,6 +1112,52 @@
 </head>
 
 <body>
+  <template id="Login">
+    <form action="javascript:void(0);">
+      <label>
+        Username:
+        <input type="text" name="username" spellcheck="false">
+      </label>
+
+      <input type="submit" value="Login" data-login-action="login">
+      <input type="submit" value="Sign Up" data-login-action="signUp">
+
+      <span class="error"></span>
+    </form>
+  </template>
+
+  <template id="SignUp">
+    <form action="javascript:void(0);">
+      <label>
+        Username:
+        <input type="text" name="username" spellcheck="false">
+      </label>
+
+      <label>
+        Glyph:
+        <div class="sign-up-glyph-input">
+          <span class="sign-up-glyph-last">&lt;</span>
+          <input type="text" name="glyph" class="sign-up-glyph" readonly></span>
+          <span class="sign-up-glyph-next">&gt;</span>
+        </div>
+      </label>
+
+      <label>
+        Colour:
+        <input type="color" name="colour">
+      </label>
+
+      <label>
+        Following public:
+        <input type="checkbox" name="followingPublic" checked>
+      </label>
+
+      <input type="submit" value="Sign up">
+
+      <span class="error"></span>
+    </form>
+  </template>
+
   <template id="Post">
     <div class="post">
       <span class="post-user"></span>
@@ -692,7 +1168,6 @@
 
   <template id="User">
     <div class="user">
-      <span class="user-glyph"></span>
       <span class="user-info">
         <span class="user-username"></span>
         <span class="user-figures">
@@ -704,14 +1179,14 @@
   </template>
 
   <header>
-  <span id="dm-selector">🌑</span>
-  <nav>
+    <span id="dm-selector">🌑</span>
+    <nav>
       <span data-page-id="feed" class="active">Feed</span>
       <span data-page-id="users">Users</span>
-      <span data-page-id="profile">Profile</span>
-  </nav>
+      <span data-page-id="profile">Login</span>
+    </nav>
   </header>
-    
+
   <main>
   </main>
 </body>

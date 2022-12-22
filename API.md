@@ -187,13 +187,27 @@ The body must be JSON encoded. This is a representation of a user.
 
 <table>
   <tr>
-    <td>Optional</td> <td>no</td>
+    <td>Condition</td> <td>Unless <code>username</code></td>
   </tr>
   <tr>
     <th>Arguments</th>
   </tr>
   <tr>
     <td>id</td> <td><code>integer</code></td>
+  </tr>
+</table>
+
+#### `username`
+
+<table>
+  <tr>
+    <td>Condition</td> <td>Unless <code>id</code</td>
+  </tr>
+  <tr>
+    <th>Arguments</th>
+  </tr>
+  <tr>
+    <td>username</td> <td><code>string</code>, <code style="display: block;">/^[a-zA-Z0-9_.\-+=!*|]{1,20}$/</code></td>
   </tr>
 </table>
 
