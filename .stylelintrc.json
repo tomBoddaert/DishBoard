@@ -57,6 +57,9 @@
     "no-extra-semicolons": true,
 
     "selector-attribute-brackets-space-inside": "always",
-    "selector-list-comma-newline-after": "always"
+    "selector-pseudo-class-parentheses-space-inside": "always",
+    "selector-list-comma-newline-after": "always",
+    "selector-attribute-operator-space-before": "always",
+    "selector-attribute-operator-space-after": "always"
   }
 }

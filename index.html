@@ -67,6 +67,7 @@
       font-family: Roboto, sans-serif;
       color: var(--text-primary);
       background-color: var(--bg-primary);
+      scrollbar-gutter: stable;
 
       /* Add colour transitions for everything */
       transition: color 0.25s, background-color 0.5s;
@@ -85,7 +86,7 @@
     #dm-selector {
       position: fixed;
       top: 10px;
-      right: 10px;
+      right: 20px;
       font-size: 2rem;
       text-shadow: 0.2rem 0.2rem 0.2rem var(--fg-secondary);
       cursor: pointer;
@@ -119,7 +120,7 @@
       color: var(--text-primary);
     }
 
-    nav > :not(.active):hover {
+    nav > :not( .active ):hover {
       color: var(--text-tertiary);
     }
 
@@ -146,7 +147,7 @@
       padding: 1rem 1rem 0;
     }
 
-    main > div:not(:last-child, .no-border) {
+    main > div:not( :last-child, .no-border ) {
       border-bottom: solid var(--fg-primary);
     }
 
@@ -171,7 +172,7 @@
       background-color: transparent;
     }
 
-    input[ type='text' ] {
+    input[ type = 'text' ] {
       padding: 0.4rem;
       border: solid var(--fg-secondary);
       border-radius: 10px;
@@ -180,16 +181,16 @@
       transition: border-color 0.25s;
     }
 
-    input[ type='text' ]:focus {
+    input[ type = 'text' ]:focus {
       outline: none;
       border-color: var(--fg-tertiary);
     }
 
-    input[ type='text' ].invalid {
+    input[ type = 'text' ].invalid {
       border-color: var(--fg-error);
     }
 
-    input[ type='checkbox' ] {
+    input[ type = 'checkbox' ] {
       appearance: none;
       display: flex;
       width: 2rem;
@@ -201,7 +202,7 @@
       cursor: pointer;
     }
 
-    input[ type='checkbox' ]::after {
+    input[ type = 'checkbox' ]::after {
       content: '';
       position: relative;
       width: 0.6rem;
@@ -213,21 +214,21 @@
       transition: border-color 0.1s;
     }
 
-    input[ type='checkbox' ]:checked::after {
+    input[ type = 'checkbox' ]:checked::after {
       border-color: var(--fg-tertiary);
     }
 
-    label:has(input[ type='checkbox' ]) {
+    label:has( input[ type = 'checkbox' ] ) {
       display: contents;
     }
 
-    input[ type='color' ] {
+    input[ type = 'color' ] {
       width: 4rem;
       height: 2rem;
       border: none;
     }
 
-    input:is([ type='submit' ], [ type='button' ]) {
+    input:is( [ type = 'submit' ], [ type = 'button' ] ) {
       padding: 0.6rem;
       border: solid var(--fg-secondary);
       border-radius: 20px;
@@ -237,7 +238,7 @@
       transition: color 0.25s;
     }
 
-    input:is([ type='submit' ], [ type='button' ]):hover {
+    input:is( [ type = 'submit' ], [ type = 'button' ] ):hover {
       color: var(--text-tertiary);
     }
 
@@ -247,7 +248,7 @@
     }
 
     /* -- Profile -- */
-    nav > [ data-page-id='profile' ] {
+    nav > [ data-page-id = 'profile' ] {
       display: flex;
       gap: 0.2rem;
       align-items: center;
@@ -257,20 +258,20 @@
       font-size: 1.5rem;
     }
 
-    nav > [ data-page-id='profile' ]::before {
+    nav > [ data-page-id = 'profile' ]::before {
       content: attr(data-user-glyph);
       font-family: 'Angel-sealing Glyphs';
       font-size: 4rem;
       color: var(--glyph-colour);
     }
 
-    nav > [ data-page-id='profile' ]::after {
+    nav > [ data-page-id = 'profile' ]::after {
       content: attr(data-user-username);
       font-family: Roboto, sans-serif;
       transition: color 0.25s;
     }
 
-    label:has(.sign-up-glyph) {
+    label:has( .sign-up-glyph ) {
       display: contents;
     }
 
@@ -285,12 +286,29 @@
     }
 
     /* Extra selectors to increase specificity */
-    input[ type='text' ].sign-up-glyph {
+    input[ type = 'text' ].sign-up-glyph {
       width: 6.8rem;
       border: none;
       font-family: 'Angel-sealing Glyphs';
       font-size: 8rem;
       cursor: default;
+    }
+
+    .profile {
+      display: flex;
+      justify-content: space-evenly;
+    }
+
+    .profile > span {
+      padding: 0.8rem;
+      border: solid var(--fg-secondary);
+      border-radius: 0.8rem;
+      cursor: pointer;
+    }
+
+    .profile > span:hover {
+      color: var(--text-tertiary);
+      transition: color 0.25s;
     }
 
     /* -- Post -- */
@@ -434,7 +452,7 @@
         width: 80%;
       }
 
-      nav > [ data-page-id='profile' ] {
+      nav > [ data-page-id = 'profile' ] {
         flex-direction: column;
         padding: 0.8rem;
       }
@@ -480,7 +498,7 @@
     /* -- Constants -- */
 
     /** Regex to validate usernames */
-    const USERNAME_REGEX = /^[a-zA-Z0-9_.\-+=!*|]{1,20}$/;
+    const USERNAME_REGEX = /^[a-zA-Z0-9_.\-+ = !*|]{1,20}$/;
     /** The list of valid glyphs */
     const VALID_GLYPHS
       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@£$%^&*()[{]};:\'"\\|/?,<.>';
@@ -489,7 +507,8 @@
     const INSTRUCTION_REGEX = /^[A-Za-z0-9,.\- ]{1,100}$/;
 
 
-    /* -- Request helper functions -- */
+    /* -- Helper functions -- */
+
     /** Add a catch callback to make the response an error, with a connection message
      * @param { Promise } request
      * @returns { Promise }
@@ -507,10 +526,26 @@
      * @param { string } message
      */
     function errorToMain( message ) {
-      const errorElem = document.createElement( 'span' );
-      errorElem.classList.add( 'error' );
+      let errorElem = main.getElementsByClassName( 'error' )[ 0 ];
+
+      if ( errorElem === undefined ) {
+        errorElem = document.createElement( 'span' );
+        errorElem.classList.add( 'error' );
+        main.prepend( errorElem );
+      }
+
       errorElem.innerText = message;
-      main.appendChild( errorElem );
+    }
+
+    /** Create a new MouseEvent to simulate a click
+     * @returns { MouseEvent }
+     */
+    function newSimulateClickEvent() {
+      return new MouseEvent( 'click', {
+        view:       window,
+        bubbles:    true,
+        cancelable: true
+      } );
     }
 
 
@@ -621,8 +656,9 @@
 
     /** Change the page
      * @param { string } targetPage
+     * @param { boolean= } update
      */
-    function changePage( targetPage ) {
+    async function changePage( targetPage, update = true ) {
       // Remove the active class from the current page button
       navButtons[ currentPage ]?.classList.remove( 'active' );
       // Add the active class to the target page button
@@ -630,15 +666,18 @@
 
       currentPage = targetPage;
       // Delete all the children of the main container
-      while ( main.hasChildNodes() )
+      // eslint-disable-next-line no-unmodified-loop-condition
+      while ( main.hasChildNodes() && update )
         main.removeChild( main.firstChild );
 
       // Initialise the new page
-      initPage[ currentPage ]()
-        .then( () => {
-          // Unset the new page data
-          newPageData = undefined;
-        } );
+      if ( !update )
+        return;
+
+      await initPage[ currentPage ]();
+
+      // Unset the new page data
+      newPageData = undefined;
     }
 
     /**
@@ -661,7 +700,25 @@
           return;
         }
 
-        // Get the user from the server
+        // Extend the user page
+        newPageData ??= [];
+        newPageData[ 0 ] = loggedInId;
+        newPageData[ 1 ] ??= 'posts';
+        newPageData[ 2 ] = true;
+        await changePage( 'user' );
+
+        const profileElem = construct.profile();
+        main.prepend( profileElem );
+
+        changePage( 'profile', false );
+      },
+      signUp: async () => {
+        const signUpElem = construct.signUp();
+
+        main.appendChild( signUpElem );
+      },
+      profileEdit: async () => {
+        // Get the current user from the server
         const response = await jsonBodyErrorToResponse(
           fetch( `/api/user?id=${ loggedInId }` )
         );
@@ -670,13 +727,13 @@
         if ( !response.success )
           return errorToMain( response.message );
 
-        const profileElem = construct.user( response.data );
-        main.appendChild( profileElem );
+        const editElem = construct.profileEdit( response.data );
+        main.appendChild( editElem );
       },
-      signUp: async () => {
-        const signUpElem = construct.signUp();
-
-        main.appendChild( signUpElem );
+      postNew: async () => {
+        // TODO
+        const newElem = construct.postNew();
+        main.appendChild( newElem );
       },
       feed: async () => {
         // Get the latest posts from the server
@@ -717,10 +774,10 @@
         }
       },
       user: async () => {
-        // TODO: decide what to do here
-        // // If the user is the logged in user, go to the profile page
-        // if ( newPageData[ 0 ] === loggedInId )
-        //   return changePage( 'profile' );
+        if ( newPageData[ 0 ] === loggedInId && !newPageData[ 2 ] )
+          // await so that newPageData is not unset
+          // eslint-disable-next-line no-return-await
+          return await changePage( 'profile' );
 
         // Get the user from the server
         const response = await jsonBodyErrorToResponse(
@@ -778,6 +835,148 @@
     };
 
     const construct = {
+      profile: () => {
+        // Clone the Profile template
+        const profileElem = templates.Profile.content.cloneNode( true )
+          .children[ 0 ];
+
+        profileElem.addEventListener( 'click', ( { target } ) => {
+          const action = target.getAttribute( 'data-action' );
+
+          switch ( action ) {
+            case 'edit':
+              changePage( 'profileEdit' );
+              break;
+
+            case 'new-post':
+              changePage( 'postNew' );
+              break;
+
+            default:
+              break;
+          }
+        } );
+
+        return profileElem;
+      },
+      profileEdit: data => {
+        // Clone the profile edit template
+        const editElem = templates.SignUp.content.cloneNode( true )
+          .children[ 0 ];
+
+        editElem.addEventListener( 'submit', async () => {
+          const formData = new FormData( editElem );
+
+          // Validate the username
+          if ( !USERNAME_REGEX.test( formData.get( 'username' ) ) ) {
+            editElem.getElementsByClassName( 'error' )[ 0 ]
+              .innerText = 'Invalid username!';
+            return;
+          }
+
+          // Create the new user
+          const newUser = {
+            username:        formData.get( 'username' ),
+            glyph:           formData.get( 'glyph' ),
+            colour:          formData.get( 'colour' ),
+            followingPublic: formData.get( 'followingPublic' ) === 'on'
+          };
+
+          // Create the user update
+          const userUpdate = {};
+          for ( const [ key, newValue ] of Object.entries( newUser ) )
+            if ( newValue !== data[ key ] )
+              userUpdate[ key ] = newValue;
+
+          // If nothing has changed, stop
+          if ( Object.keys( userUpdate ).length === 0 )
+            return;
+
+          // Send the request to create a new user
+          const response = await jsonBodyErrorToResponse(
+            fetch(
+              `/api/user?id=${ loggedInId }`,
+              {
+                method:  'PATCH',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify( userUpdate )
+              }
+            )
+          );
+
+          // If there was an error, show it
+          if ( !response.success ) {
+            editElem.getElementsByClassName( 'error' )[ 0 ]
+              .innerText = response.message;
+            return;
+          }
+
+          login( { ...data, ...userUpdate } );
+          changePage( 'profile' );
+        } );
+
+        // Get the username input
+        const usernameElem = editElem.querySelector( '[ name = "username" ]' );
+        // Set the username
+        usernameElem.value = data.username;
+
+        // When the username is changed, validate it
+        usernameElem.addEventListener( 'input', () => {
+          const username = usernameElem.value;
+
+          // Validate the typed username, if invalid, make the border red
+          if ( USERNAME_REGEX.test( username ) )
+            usernameElem.classList.remove( 'invalid' );
+          else
+            usernameElem.classList.add( 'invalid' );
+        } );
+
+        // Get the glyph input
+        const glyphInputElem = editElem.getElementsByClassName( 'sign-up-glyph-input' )[ 0 ];
+        // Get the glyph
+        const glyphElem = glyphInputElem.getElementsByClassName( 'sign-up-glyph' )[ 0 ];
+
+        // Randomise the glyph order
+        const glyphs = [ ...VALID_GLYPHS ].sort( () => Math.random() - 0.5 );
+        // Set the current glyph
+        let glyphIndex = glyphs.findIndex( glyph => glyph === data.glyph );
+        glyphElem.value = glyphs[ glyphIndex ];
+
+        // When the last or next buttons are pressed, change the glyph
+        glyphInputElem.addEventListener( 'click', ( { target } ) => {
+          const indexDelta = target.classList.contains( 'sign-up-glyph-last' )
+            ? -1
+            : target.classList.contains( 'sign-up-glyph-next' )
+              ? 1
+              : 0;
+
+          glyphIndex = ( glyphIndex + indexDelta + glyphs.length ) % glyphs.length;
+
+          glyphElem.value = glyphs[ glyphIndex ];
+        } );
+
+        // Get the colour input
+        const colourElem = editElem.querySelector( '[ name = "colour" ]' );
+        // Set the initial colour
+        colourElem.value = data.colour;
+        glyphElem.style.color = colourElem.value;
+
+        // When the colour is changed, update the glyph
+        colourElem.addEventListener( 'input', () => {
+          glyphElem.style.color = colourElem.value;
+        } );
+
+        // Set the following public value
+        editElem.querySelector( '[ name = "followingPublic" ]' ).checked = data.followingPublic;
+
+        // Change the text of the submit button to Save
+        const submitButton = editElem.querySelector( '[ type = "submit" ]' );
+        submitButton.value = 'Save';
+
+        return editElem;
+      },
       login: () => {
         // Clone the Login template
         const loginElem = templates.Login.content.cloneNode( true )
@@ -837,7 +1036,7 @@
           }
         } );
 
-        const usernameElem = loginElem.querySelector( '[name="username"]' );
+        const usernameElem = loginElem.querySelector( '[ name = "username" ]' );
         usernameElem.addEventListener( 'input', () => {
           const username = usernameElem.value;
 
@@ -902,7 +1101,7 @@
         } );
 
         // Get the username input
-        const usernameElem = signUpElem.querySelector( '[name="username"]' );
+        const usernameElem = signUpElem.querySelector( '[ name = "username" ]' );
         // Set the username to the saved one, if it exists
         if ( newPageData )
           usernameElem.value = newPageData;
@@ -943,7 +1142,7 @@
         } );
 
         // Get the colour input
-        const colourElem = signUpElem.querySelector( '[name="colour"]' );
+        const colourElem = signUpElem.querySelector( '[ name = "colour" ]' );
         // Set the initial colour
         colourElem.value = darkMode ? '#dddddd' : '#333333';
         glyphElem.style.color = colourElem.value;
@@ -1063,6 +1262,17 @@
     /* -- On load -- */
 
     window.addEventListener( 'DOMContentLoaded', () => {
+      /* -- Add keyboard click for accessibility -- */
+
+      /* Code adapted from https://github.com/tomBoddaert/tomBoddaert.github.io/blob/01fe1d85a91d6c08cbf741c42e4ed6faa54e3367/rawPages/resources/main.ts#L17 */
+      document.addEventListener( 'keyup', event => {
+        if (
+          ( event.key === 'Enter' || event.key === ' ' )
+          && document.activeElement?.tagName !== 'input'
+        )
+          document.activeElement?.dispatchEvent( newSimulateClickEvent() );
+      } );
+
       /* -- Dark mode -- */
 
       // Get the dark mode selector
@@ -1136,9 +1346,9 @@
       <label>
         Glyph:
         <div class="sign-up-glyph-input">
-          <span class="sign-up-glyph-last">&lt;</span>
-          <input type="text" name="glyph" class="sign-up-glyph" readonly></span>
-          <span class="sign-up-glyph-next">&gt;</span>
+          <span class="sign-up-glyph-last" tabindex="0" role="button">&lt;</span>
+          <input type="text" name="glyph" class="sign-up-glyph" readonly tabindex="-1"></span>
+          <span class="sign-up-glyph-next" tabindex="0" role="button">&gt;</span>
         </div>
       </label>
 
@@ -1158,9 +1368,16 @@
     </form>
   </template>
 
+  <template id="Profile">
+    <div class="profile">
+      <span data-action="edit" tabindex="0" role="link">Edit profile</span>
+      <span data-action="new-post" tabindex="0" role="link">New post</span>
+    </div>
+  </template>
+
   <template id="Post">
     <div class="post">
-      <span class="post-user"></span>
+      <span class="post-user" tabindex="0" role="link"></span>
       <ol class="post-recipe"></ol>
       <span class="post-body"></span>
     </div>
@@ -1169,21 +1386,21 @@
   <template id="User">
     <div class="user">
       <span class="user-info">
-        <span class="user-username"></span>
+        <span class="user-username" tabindex="0" role="link"></span>
         <span class="user-figures">
-          <span class="user-nposts"></span>
-          <span class="user-nfollowing"></span>
+          <span class="user-nposts" tabindex="0" role="link"></span>
+          <span class="user-nfollowing" tabindex="0" role="link"></span>
         </span>
       </span>
     </div>
   </template>
 
   <header>
-    <span id="dm-selector">🌑</span>
+    <span id="dm-selector" tabindex="0" role="button">🌑</span>
     <nav>
-      <span data-page-id="feed" class="active">Feed</span>
-      <span data-page-id="users">Users</span>
-      <span data-page-id="profile">Login</span>
+      <span data-page-id="feed" class="active" tabindex="0" role="link">Feed</span>
+      <span data-page-id="users" tabindex="0" role="link">Users</span>
+      <span data-page-id="profile" tabindex="0" role="link">Login</span>
     </nav>
   </header>
 
