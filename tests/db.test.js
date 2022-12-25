@@ -8,8 +8,8 @@ import db from '../db';
 
 
 // Add some data to the test database
-db.addUser( 'u1', '#868686', 'j', true );
-db.addUser( 'u2', '#686868', 'k', false );
+db.addUser( 'u1', '#868686', 'j' );
+db.addUser( 'u2', '#686868', 'k' );
 db.addPost( 0, Date.now(), 'recipe_string', 'hello world' );
 db.addPost( 1, Date.now(), 'recipe_string2', 'hello planet' );
 
@@ -22,7 +22,7 @@ test( 'add a user to the database', () => {
   };
 
   // Add a new user and get the resulting id
-  const id = db.addUser( expectedUser.username, expectedUser.colour, expectedUser.glyph, true );
+  const id = db.addUser( expectedUser.username, expectedUser.colour, expectedUser.glyph );
   // Check that the new user exists
   expect( db.existsUser( id ) ).toBe( true );
 

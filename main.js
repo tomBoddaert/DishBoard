@@ -18,14 +18,14 @@ app.listen( 8080, () => console.log( 'Listening on http://localhost:8080/' ) );
 if ( args.includes( '--production' ) || args.includes( '-p' ) )
   useProductionDB();
 else {
-  const ZERO = db.addUser( 'userZero', '#888888', 'a', true );
-  const ONE = db.addUser( 'userOne', '#cc8888', 'b', true );
-  const TWO = db.addUser( 'userTwo', '#88cc88', 'c', true );
-  const THREE = db.addUser( 'userThree', '#8888cc', 'd', true );
-  const FOUR = db.addUser( 'userFour', '#cccc88', 'e', true );
-  const FIVE = db.addUser( 'userFive', '#cc88cc', 'f', false );
-  const SIX = db.addUser( 'userSix', '#88cccc', 'g', true );
-  const SEVEN = db.addUser( 'userSeven', '#cccccc', 'h', false );
+  const ZERO = db.addUser( 'userZero', '#888888', 'a' );
+  const ONE = db.addUser( 'userOne', '#cc8888', 'b' );
+  const TWO = db.addUser( 'userTwo', '#88cc88', 'c' );
+  const THREE = db.addUser( 'userThree', '#8888cc', 'd' );
+  const FOUR = db.addUser( 'userFour', '#cccc88', 'e' );
+  const FIVE = db.addUser( 'userFive', '#cc88cc', 'f' );
+  const SIX = db.addUser( 'userSix', '#88cccc', 'g' );
+  const SEVEN = db.addUser( 'userSeven', '#cccccc', 'h' );
 
   db.addUserFollow( ZERO, ONE );
   db.addUserFollow( ZERO, THREE );

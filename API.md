@@ -49,7 +49,7 @@ An object `Object` with options `op1` and `op2` is denoted `Object<op1, op2>`
     <td><code>nPosts</code></td> <td><code>integer</code></td>
   </tr>
   <tr>
-    <td><code>nFollowing</code></td> <td><code>integer</code></td> <td>if the user's following list is public</td>
+    <td><code>nFollowing</code></td> <td><code>integer</code></td>
   </tr>
   <tr>
     <td><code>posts</code></td> <td><code>Post<-user>[]</code></td> <td>if option: posts</td>
@@ -169,9 +169,6 @@ The body must be JSON encoded. This is a representation of a user.
   <tr>
     <td><code>glyph</code></td> <td><code>character</code>, <code style="display: block;">/^[!"$-*,.-&lt;&gt;-^a-}£]$/</code></td>
   </tr>
-  <tr>
-    <td><code>followingPublic</code></td> <td><code>boolean</code></td>
-  </tr>
 </table>
 
 ### Response data
@@ -227,9 +224,6 @@ The body must be JSON encoded. This is a partial representation of a user.
   </tr>
   <tr>
     <td><code>glyph</code></td> <td><code>character</code>, <code style="display: block;">/^[!"$-*,.-&lt;&gt;-^a-}£]$/</code></td> <td>yes</td>
-  </tr>
-  <tr>
-    <td><code>followingPublic</code></td> <td><code>boolean</code></td> <td>yes</td>
   </tr>
 </table>
 
@@ -474,6 +468,44 @@ The body must be JSON encoded. This is a partial representation of a post.
 `Post[]` in order from newest to oldest with a maximum length of the `n` parameter, and offset of the `o` parameter
 
 # `/api/follow`
+
+## GET
+
+Check if a user is following another user
+
+### Parameters
+
+#### `id`
+
+<table>
+  <tr>
+    <td>Optional</td> <td>no</td>
+  </tr>
+  <tr>
+    <th>Arguments</th>
+  </tr>
+  <tr>
+    <td>id</td> <td><code>integer</code></td>
+  </tr>
+</table>
+
+#### `follow`
+
+<table>
+  <tr>
+    <td>Optional</td> <td>no</td>
+  </tr>
+  <tr>
+    <th>Arguments</th>
+  </tr>
+  <tr>
+    <td>follow</td> <td><code>integer</code></td>
+  </tr>
+</table>
+
+### Response data
+
+`boolean`, `true` if the user (`id`) follows the follow (`follow`)
 
 ## POST
 

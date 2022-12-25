@@ -146,7 +146,7 @@ function validateParamParseIntListDefault( value, name, ...defaultValues ) {
  * @throws { APIError }
  */
 export function getData( type, options ) {
-  let result, id, n, o;
+  let result, id, n, o, follow;
 
   switch ( type ) {
     case 'user':
@@ -192,8 +192,8 @@ export function getData( type, options ) {
         result.posts = db.getUserPosts( id, n, o );
       }
 
-      // If the user's following list was requested and is public, get it
-      if ( 'following' in options && db.getUserFollowingPublic( id ) ) {
+      // If the user's following list was requested, get it
+      if ( 'following' in options ) {
         // Get the number of users and offset, if provided and error if they are not
         //  integers, with defaults
         [ n, o ] = validateParamParseIntListDefault( options.following, 'following', 10, 0 );
@@ -249,6 +249,29 @@ export function getData( type, options ) {
 
       // Get the posts
       result = db.getPosts( n, o );
+
+      break;
+
+    case 'follow':
+      console.log( `follow: ${ JSON.stringify( options ) }` );
+
+      // Parse the id as an integer, if it was not provided or is not an integer,
+      //  throw an error
+      id = validateParamParseInt( options.id, 'id' );
+
+      // If the user does not exist, throw an error
+      if ( !db.existsUser( id ) )
+        throw new APIError( `User '${ id }' not found!` );
+
+      // Parse the follow id as an integer, if it was not provided or is not an integer,
+      //  throw an error
+      follow = validateParamParseInt( options.follow, 'follow' );
+
+      // If the follow does not exist, throw an error
+      if ( !db.existsUser( follow ) )
+        throw new APIError( `User '${ follow }' not found!` );
+
+      result = db.existsUserFollow( id, follow );
 
       break;
 
@@ -311,15 +334,11 @@ export function addData( type, options ) {
       )
         throw new APIError( 'Invalid glyph provided!' );
 
-      // If followingPublic is not provided or is not a boolean, throw an error
-      validateParamType( options.followingPublic, 'followingPublic', 'boolean' );
-
       // Add the user and get the id
       result = db.addUser(
         options.username,
         options.colour,
-        options.glyph,
-        options.followingPublic
+        options.glyph
       );
 
       break;
@@ -550,14 +569,6 @@ export function updateData( type, idOptions, options ) {
           throw new APIError( 'Invalid glyph provided!' );
 
         db.updateUserGlyph( id, options.glyph );
-      }
-
-      // If the followingPublic is provided, attempt to update it
-      if ( options.followingPublic !== undefined ) {
-        // If followingPublic is not provided or is not a boolean, throw an error
-        validateParamType( options.followingPublic, 'followingPublic', 'boolean' );
-
-        db.updateUserFollowingPublic( id, options.followingPublic );
       }
 
       // Return true

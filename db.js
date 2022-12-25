@@ -135,19 +135,15 @@ export function existsUserFollow( id, follow ) {
  * @returns { object }
  */
 const filterUser = (
-  { id: userId, username, colour, glyph, posts, following, followingPublic }
+  { id: userId, username, colour, glyph, posts, following }
 ) => (
   {
-    id:     userId,
+    id:         userId,
     username,
     colour,
     glyph,
-    nPosts: posts.length,
-    ...followingPublic
-      ? {
-        nFollowing: following.length
-      }
-      : {}
+    nPosts:     posts.length,
+    nFollowing: following.length
   }
 );
 
@@ -192,13 +188,6 @@ export function getUserFollowing( id, n, o ) {
     .map( followingId => getUser( followingId ) );
 }
 
-/** Get the user's following public setting
- * @param { number } id
- * @returns { boolean }
- */
-export function getUserFollowingPublic( id ) {
-  return data.users[ id ]?.followingPublic;
-}
 
 /** Get the last n users to sign up with an offset of o
  * @param { number } n
@@ -215,10 +204,9 @@ export function getUsers( n, o ) {
  * @param { string } username
  * @param { string } colour
  * @param { string } glyph
- * @param { boolean } followingPublic
  * @returns { number }
  */
-export function addUser( username, colour, glyph, followingPublic ) {
+export function addUser( username, colour, glyph ) {
   const id = data.nextUserId++;
   data.users[ id ] = {
     id,
@@ -226,8 +214,7 @@ export function addUser( username, colour, glyph, followingPublic ) {
     colour,
     glyph,
     posts:     [],
-    following: [],
-    followingPublic
+    following: []
   };
 
   data.userIds.unshift( id );
@@ -301,16 +288,6 @@ export function updateUserGlyph( id, glyph ) {
   const user = data.users[ id ];
 
   user.glyph = glyph;
-}
-
-/** Update a user's following public setting
- * @param { number } id
- * @param { boolean } followingPublic
- */
-export function updateUserFollowingPublic( id, followingPublic ) {
-  const user = data.users[ id ];
-
-  user.followingPublic = followingPublic;
 }
 
 
@@ -427,7 +404,6 @@ export default {
   getUserByUsername,
   getUserPosts,
   getUserFollowing,
-  getUserFollowingPublic,
   getUsers,
   addUser,
   addUserFollow,
@@ -436,7 +412,6 @@ export default {
   updateUserUsername,
   updateUserColour,
   updateUserGlyph,
-  updateUserFollowingPublic,
 
   existsPost,
   getPost,

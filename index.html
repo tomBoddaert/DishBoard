@@ -925,6 +925,61 @@
           default:
             break;
         }
+
+        // If not logged in or if the logged in user is the current user,
+        //  stop here
+        if ( loggedInId === undefined || data.id === loggedInId )
+          return;
+
+        // Send the request to check if the logged in user is following the current user
+        let followResponse = await jsonBodyErrorToResponse(
+          fetch( `/api/follow?id=${ loggedInId }&follow=${ data.id }` )
+        );
+
+        // If there was an error, show it
+        if ( !followResponse.success )
+          return errorToMain( followResponse.errorToMain( followResponse.message ) );
+
+        let isFollowing = followResponse.data;
+
+        // Create a follow element
+        const followElem = document.createElement( 'input' );
+        followElem.setAttribute( 'type', 'button' );
+        followElem.setAttribute( 'value', isFollowing ? 'Unfollow' : 'Follow' );
+
+        // Add it to the user element
+        userElem.appendChild( followElem );
+
+        followElem.addEventListener( 'click', async () => {
+          // Send the request to add the follow
+          followResponse = await jsonBodyErrorToResponse(
+            fetch(
+              isFollowing
+                ? `/api/follow?id=${ loggedInId }&follow=${ data.id }`
+                : '/api/follow',
+              isFollowing
+                ? { method: 'DELETE' }
+                : {
+                  method:  'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify( {
+                    id:     loggedInId,
+                    follow: data.id
+                  } )
+                }
+            )
+          );
+
+          // If there was an error, show it
+          if ( !followResponse.success )
+            return errorToMain( followResponse.message );
+
+          // Invert following and update the text
+          isFollowing = !isFollowing;
+          followElem.setAttribute( 'value', isFollowing ? 'Unfollow' : 'Follow' );
+        } );
       }
     };
 
@@ -977,10 +1032,9 @@
 
           // Create the new user
           const newUser = {
-            username:        formData.get( 'username' ),
-            glyph:           formData.get( 'glyph' ),
-            colour:          formData.get( 'colour' ),
-            followingPublic: formData.get( 'followingPublic' ) === 'on'
+            username: formData.get( 'username' ),
+            glyph:    formData.get( 'glyph' ),
+            colour:   formData.get( 'colour' )
           };
 
           // Create the user update
@@ -1067,10 +1121,6 @@
         colourElem.addEventListener( 'input', () => {
           glyphElem.style.color = colourElem.value;
         } );
-
-        // Set the following public value
-        editElem.querySelector( '[ name = "followingPublic" ]' ).checked
-          = data.nFollowing !== undefined;
 
         // Change the text of the submit button to Save
         const submitButton = editElem.querySelector( '[ type = "submit" ]' );
@@ -1214,10 +1264,9 @@
 
           // Create the new user
           const newUser = {
-            username:        formData.get( 'username' ),
-            glyph:           formData.get( 'glyph' ),
-            colour:          formData.get( 'colour' ),
-            followingPublic: formData.get( 'followingPublic' ) === 'on'
+            username: formData.get( 'username' ),
+            glyph:    formData.get( 'glyph' ),
+            colour:   formData.get( 'colour' )
           };
 
           // Send the request to create a new user
@@ -1685,14 +1734,11 @@
         // Set the number of people the user is following, or if private, remove the
         //  number of posts element
         const nFollowingElem = figuresElem.getElementsByClassName( 'user-nfollowing' )[ 0 ];
-        if ( data.nFollowing !== undefined ) {
-          nFollowingElem.innerText = `Following: ${ data.nFollowing }`;
-          nFollowingElem.addEventListener( 'click', () => {
-            newPageData = [ data.id, 'following' ];
-            changePage( 'user' );
-          } );
-        } else
-          nFollowingElem.remove();
+        nFollowingElem.innerText = `Following: ${ data.nFollowing }`;
+        nFollowingElem.addEventListener( 'click', () => {
+          newPageData = [ data.id, 'following' ];
+          changePage( 'user' );
+        } );
 
         return userElem;
       }
@@ -1795,11 +1841,6 @@
       <label>
         Colour:
         <input type="color" name="colour">
-      </label>
-
-      <label>
-        Following public:
-        <input type="checkbox" name="followingPublic" checked>
       </label>
 
       <input type="submit" value="Sign up">

@@ -13,8 +13,8 @@ import { app } from '../server.js';
 
 
 // Add some data to the test database
-db.addUser( 'u1', '#868686', 'j', true );
-db.addUser( 'u2', '#686868', 'k', false );
+db.addUser( 'u1', '#868686', 'j' );
+db.addUser( 'u2', '#686868', 'k' );
 db.addPost( 0, 'recipe_string', 'hello world' );
 db.addPost( 1, 'recipe_string2', 'hello planet' );
 
@@ -71,7 +71,7 @@ test( 'GET /api/users', async () => {
 
 
 test( 'POST /api/user', async () => {
-  const expectedUser = { username: 'u3', colour: '#aaaaff', glyph: 'l', followingPublic: false };
+  const expectedUser = { username: 'u3', colour: '#aaaaff', glyph: 'l' };
 
   // Send a POST request to /api/user
   const res = await request( app )
