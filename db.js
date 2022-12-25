@@ -130,27 +130,33 @@ export function existsUserFollow( id, follow ) {
 }
 
 
+/** Filter a user to its exposed values, and copy
+ * @param { object } user
+ * @returns { object }
+ */
+const filterUser = (
+  { id: userId, username, colour, glyph, posts, following, followingPublic }
+) => (
+  {
+    id:     userId,
+    username,
+    colour,
+    glyph,
+    nPosts: posts.length,
+    ...followingPublic
+      ? {
+        nFollowing: following.length
+      }
+      : {}
+  }
+);
+
 /** Get a user
  * @param { number } id
  * @returns { object }
  */
 export function getUser( id ) {
-  return (
-    ( { id: userId, username, colour, glyph, posts, following, followingPublic } ) => (
-      {
-        id:     userId,
-        username,
-        colour,
-        glyph,
-        nPosts: posts.length,
-        ...followingPublic
-          ? {
-            nFollowing: following.length
-          }
-          : {}
-      }
-    )
-  )( data.users[ id ] );
+  return filterUser( data.users[ id ] );
 }
 
 /** Get a user by username
@@ -158,8 +164,10 @@ export function getUser( id ) {
  * @returns { object }
  */
 export function getUserByUsername( username ) {
-  return Object.values( data.users )
-    .find( user => user.username === username );
+  return filterUser(
+    Object.values( data.users )
+      .find( user => user.username === username )
+  );
 }
 
 /** Get a user's last n posts with an offset of o
@@ -217,10 +225,9 @@ export function addUser( username, colour, glyph, followingPublic ) {
     username,
     colour,
     glyph,
-    posts:      [],
-    following:  [],
-    followingPublic,
-    followedBy: []
+    posts:     [],
+    following: [],
+    followingPublic
   };
 
   data.userIds.unshift( id );
@@ -234,7 +241,6 @@ export function addUser( username, colour, glyph, followingPublic ) {
  */
 export function addUserFollow( id, follow ) {
   data.users[ id ].following.unshift( follow );
-  data.users[ follow ].followedBy.unshift( id );
 }
 
 
@@ -244,14 +250,13 @@ export function addUserFollow( id, follow ) {
 export function deleteUser( id ) {
   const user = data.users[ id ];
 
-  for ( const postId of user.posts )
+  for ( const postId of [ ...user.posts ] )
     deletePost( postId );
 
-  for ( const followingId of user.following )
-    deleteUserFollow( followingId, id );
-
-  for ( const followerId of user.followedBy )
-    deleteUserFollow( id, followerId );
+  for ( const { id: followerId } of Object.values( data.users ).filter(
+    follower => follower.following.includes( id )
+  ) )
+    deleteUserFollow( followerId, id );
 
   data.userIds.splice( data.userIds.indexOf( id ), 1 );
   delete data.users[ id ];
@@ -263,10 +268,8 @@ export function deleteUser( id ) {
  */
 export function deleteUserFollow( id, followId ) {
   const user = data.users[ id ];
-  const follow = data.users[ followId ];
 
   user.following.splice( user.following.indexOf( followId ), 1 );
-  follow.followedBy.splice( follow.followedBy.indexOf( id ), 1 );
 }
 
 
@@ -323,12 +326,21 @@ export function existsPost( id ) {
 }
 
 
+/** Filter a post to its exposed values, and copy
+ * @param { object } post
+ * @returns { object }
+ */
+const filterPost = post => ( {
+  ...post,
+  recipe: [ ...post.recipe ]
+} );
+
 /** Get a post
  * @param { number } id
  * @returns { object }
  */
 export function getPost( id ) {
-  return data.posts[ id ];
+  return filterPost( data.posts[ id ] );
 }
 
 /** Get the last n posts with an offset of o
@@ -340,7 +352,7 @@ export function getPosts( n, o ) {
   return data.postIds.slice( o, o + n )
     .map( postId => getPost( postId ) )
     .map( post => {
-      return { ...post, user: getUser( post.user ) };
+      return { ...filterPost( post ), user: getUser( post.user ) };
     } );
 }
 
@@ -375,8 +387,8 @@ export function addPost( user, timestamp, recipe, body ) {
 export function deletePost( id ) {
   const post = data.posts[ id ];
 
-  data.users[ post.user ].posts.splice( data.users[ post.user ].posts.indexOf( post.id ), 1 );
-  data.postIds.splice( data.postIds.indexOf( post.id ), 1 );
+  data.users[ post.user ].posts.splice( data.users[ post.user ].posts.indexOf( id ), 1 );
+  data.postIds.splice( data.postIds.indexOf( id ), 1 );
 
   delete data.posts[ id ];
 }

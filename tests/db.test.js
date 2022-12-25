@@ -98,7 +98,7 @@ test( 'update a user\'s username', () => {
 
 test( 'add a post to the database', () => {
   const expectedPost = {
-    recipe: 'the recipe',
+    recipe: [ 'the recipe' ],
     body:   'Hello World!'
   };
 

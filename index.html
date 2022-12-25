@@ -163,16 +163,19 @@
       font-size: 1.25rem;
     }
 
-    label > input {
+    label > input,
+    label > textarea {
       display: block;
       margin-top: 0.4rem;
     }
 
-    input {
+    input,
+    textarea {
       background-color: transparent;
     }
 
-    input[ type = 'text' ] {
+    input[ type = 'text' ],
+    textarea {
       padding: 0.4rem;
       border: solid var(--fg-secondary);
       border-radius: 10px;
@@ -181,12 +184,14 @@
       transition: border-color 0.25s;
     }
 
-    input[ type = 'text' ]:focus {
+    input[ type = 'text' ]:focus,
+    textarea:focus {
       outline: none;
       border-color: var(--fg-tertiary);
     }
 
-    input[ type = 'text' ].invalid {
+    input[ type = 'text' ].invalid,
+    textarea.invalid {
       border-color: var(--fg-error);
     }
 
@@ -297,6 +302,9 @@
     .profile {
       display: flex;
       justify-content: space-evenly;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.8rem;
     }
 
     .profile > span {
@@ -379,6 +387,22 @@
       display: block;
       font-size: 0.8rem;
       color: var(--text-secondary);
+    }
+
+    /* -- New Post -- */
+    .post-new-recipe li {
+      align-items: center;
+      list-style-position: inside;
+    }
+
+    .post-new-recipe input[ type = 'text' ] {
+      display: inline;
+    }
+
+    .post-new-recipe input[ type = 'button' ] {
+      height: 2rem;
+      padding-top: 0;
+      padding-bottom: 0;
     }
 
     /* -- User -- */
@@ -548,6 +572,22 @@
       } );
     }
 
+    /** Shallow compare two arrays
+     * @param { Array } a1
+     * @param { Array } a2
+     * @returns { boolean }
+     */
+    function shallowCompare( a1, a2 ) {
+      if ( a1.length !== a2.length )
+        return false;
+
+      for ( let i = 0; i < a1.length; i++ )
+        if ( a1[ i ] !== a2[ i ] )
+          return false;
+
+      return true;
+    }
+
 
     /* -- Dark mode -- */
     /* (this code was originally written for https://github.com/stevenaeola/proglabs_js/pull/39) */
@@ -619,6 +659,25 @@
       profileElem.setAttribute( 'data-user-glyph', user.glyph );
       // Set the user's colour
       profileElem.style.setProperty( '--glyph-colour', user.colour );
+    }
+
+    /** Logout */
+    function logout() {
+      loggedInId = undefined;
+
+      // Get the profile navbar element
+      const profileElem = navButtons.profile;
+
+      // Add the login text
+      profileElem.innerText = 'Login';
+
+      // Unset the username data attribute
+      profileElem.removeAttribute( 'data-user-username' );
+
+      // Unset the glyph data attribute
+      profileElem.removeAttribute( 'data-user-glyph' );
+      // Unset the user's colour
+      profileElem.style.removeProperty( '--glyph-colour' );
     }
 
 
@@ -707,10 +766,31 @@
         newPageData[ 2 ] = true;
         await changePage( 'user' );
 
+        // Set the current page as profile without update
+        await changePage( 'profile', false );
+
+        // Create a profile options element
         const profileElem = construct.profile();
         main.prepend( profileElem );
 
-        changePage( 'profile', false );
+        // Get all post bodies
+        const posts = main.getElementsByClassName( 'post' );
+
+        // Add an edit button to each post
+        for ( const post of posts ) {
+          const edit = document.createElement( 'input' );
+          edit.setAttribute( 'type', 'button' );
+          edit.setAttribute( 'value', 'Edit' );
+          edit.style.height = 'fit-content';
+          post.appendChild( edit );
+
+          // Listen for click events on the edit button
+          // eslint-disable-next-line no-loop-func
+          edit.addEventListener( 'click', () => {
+            newPageData = post.getAttribute( 'data-post-id' );
+            changePage( 'postEdit' );
+          } );
+        }
       },
       signUp: async () => {
         const signUpElem = construct.signUp();
@@ -731,9 +811,21 @@
         main.appendChild( editElem );
       },
       postNew: async () => {
-        // TODO
         const newElem = construct.postNew();
         main.appendChild( newElem );
+      },
+      postEdit: async () => {
+        // Get the post from the server
+        const response = await jsonBodyErrorToResponse(
+          fetch( `/api/post?id=${ newPageData[ 0 ] }` )
+        );
+
+        // If the response is an error, show it
+        if ( !response.success )
+          return errorToMain( response.message );
+
+        const editElem = construct.postEdit( response.data );
+        main.appendChild( editElem );
       },
       feed: async () => {
         // Get the latest posts from the server
@@ -797,6 +889,7 @@
         let textElem;
         switch ( newPageData[ 1 ] ) {
           case 'posts':
+            // Create the posts title
             textElem = document.createElement( 'div' );
             textElem.classList.add( 'no-border' );
             textElem.innerText = 'Posts:';
@@ -813,6 +906,7 @@
             break;
 
           case 'following':
+            // Create the following title
             textElem = document.createElement( 'div' );
             textElem.classList.add( 'no-border' );
             textElem.innerText = 'Following:';
@@ -852,6 +946,11 @@
               changePage( 'postNew' );
               break;
 
+            case 'logout':
+              logout();
+              changePage( 'feed' );
+              break;
+
             default:
               break;
           }
@@ -864,13 +963,15 @@
         const editElem = templates.SignUp.content.cloneNode( true )
           .children[ 0 ];
 
+        // Get the error element
+        const errorElem = editElem.getElementsByClassName( 'error' )[ 0 ];
+
         editElem.addEventListener( 'submit', async () => {
           const formData = new FormData( editElem );
 
           // Validate the username
           if ( !USERNAME_REGEX.test( formData.get( 'username' ) ) ) {
-            editElem.getElementsByClassName( 'error' )[ 0 ]
-              .innerText = 'Invalid username!';
+            errorElem.innerText = 'Invalid username!';
             return;
           }
 
@@ -888,9 +989,9 @@
             if ( newValue !== data[ key ] )
               userUpdate[ key ] = newValue;
 
-          // If nothing has changed, stop
+          // If nothing has changed, exit
           if ( Object.keys( userUpdate ).length === 0 )
-            return;
+            changePage( 'profile' );
 
           // Send the request to create a new user
           const response = await jsonBodyErrorToResponse(
@@ -908,8 +1009,7 @@
 
           // If there was an error, show it
           if ( !response.success ) {
-            editElem.getElementsByClassName( 'error' )[ 0 ]
-              .innerText = response.message;
+            errorElem.innerText = response.message;
             return;
           }
 
@@ -969,11 +1069,57 @@
         } );
 
         // Set the following public value
-        editElem.querySelector( '[ name = "followingPublic" ]' ).checked = data.followingPublic;
+        editElem.querySelector( '[ name = "followingPublic" ]' ).checked
+          = data.nFollowing !== undefined;
 
         // Change the text of the submit button to Save
         const submitButton = editElem.querySelector( '[ type = "submit" ]' );
-        submitButton.value = 'Save';
+        submitButton.setAttribute( 'value', 'Save' );
+
+        // Create the delete element
+        const deleteElem = document.createElement( 'input' );
+        deleteElem.setAttribute( 'type', 'button' );
+        deleteElem.style.borderColor = 'var(--fg-error)';
+        deleteElem.setAttribute( 'value', 'Delete' );
+        editElem.appendChild( deleteElem );
+
+        deleteElem.addEventListener( 'click', async () => {
+          const confirmed = deleteElem.getAttribute( 'data-confirm' );
+
+          if ( confirmed === null ) {
+            // Change the button to a confirm button
+            deleteElem.setAttribute( 'data-confirm', '' );
+            deleteElem.setAttribute( 'value', 'Confirm deletion' );
+
+            setTimeout( () => {
+              if ( deleteElem ) {
+                // Change the button to a delete button after 3 seconds
+                deleteElem.removeAttribute( 'data-confirm' );
+                deleteElem.setAttribute( 'value', 'Delete' );
+              }
+            }, 3000 );
+            return;
+          }
+
+          // Send the request to delete the user
+          const response = await jsonBodyErrorToResponse(
+            fetch(
+              `/api/user?id=${ loggedInId }`,
+              {
+                method: 'DELETE'
+              }
+            )
+          );
+
+          // If there was an error, show it
+          if ( !response.success ) {
+            errorElem.innerText = response.message;
+            return;
+          }
+
+          logout();
+          changePage( 'feed' );
+        } );
 
         return editElem;
       },
@@ -981,6 +1127,9 @@
         // Clone the Login template
         const loginElem = templates.Login.content.cloneNode( true )
           .children[ 0 ];
+
+        // Get the error element
+        const errorElem = loginElem.getElementsByClassName( 'error' )[ 0 ];
 
         loginElem.addEventListener( 'submit', async ( { submitter } ) => {
           const action = submitter.getAttribute( 'data-login-action' );
@@ -993,8 +1142,7 @@
             case 'login':
               // Validate the username
               if ( !USERNAME_REGEX.test( formData.get( 'username' ) ) ) {
-                loginElem.getElementsByClassName( 'error' )[ 0 ]
-                  .innerText = 'Invalid username!';
+                errorElem.innerText = 'Invalid username!';
                 return;
               }
 
@@ -1005,8 +1153,7 @@
               // If the user was not found, or there was another error,
               //  show the error
               if ( !response.success ) {
-                loginElem.getElementsByClassName( 'error' )[ 0 ]
-                  .innerText = response.message;
+                errorElem.innerText = response.message;
                 return;
               }
 
@@ -1021,8 +1168,7 @@
                 !USERNAME_REGEX.test( formData.get( 'username' ) )
                 && formData.get( 'username' ) !== ''
               ) {
-                loginElem.getElementsByClassName( 'error' )[ 0 ]
-                  .innerText = 'Invalid username!';
+                errorElem.innerText = 'Invalid username!';
                 return;
               }
 
@@ -1054,13 +1200,15 @@
         const signUpElem = templates.SignUp.content.cloneNode( true )
           .children[ 0 ];
 
+        // Get the error element
+        const errorElem = signUpElem.getElementsByClassName( 'error' )[ 0 ];
+
         signUpElem.addEventListener( 'submit', async () => {
           const formData = new FormData( signUpElem );
 
           // Validate the username
           if ( !USERNAME_REGEX.test( formData.get( 'username' ) ) ) {
-            signUpElem.getElementsByClassName( 'error' )[ 0 ]
-              .innerText = 'Invalid username!';
+            errorElem.innerText = 'Invalid username!';
             return;
           }
 
@@ -1088,8 +1236,7 @@
 
           // If there was an error, show it
           if ( !response.success ) {
-            signUpElem.getElementsByClassName( 'error' )[ 0 ]
-              .innerText = response.message;
+            errorElem.innerText = response.message;
             return;
           }
 
@@ -1206,6 +1353,299 @@
 
         // Return the saturated element
         return postElem;
+      },
+      postNew: () => {
+        // Clone the PostNew template
+        const newElem = templates.PostNew.content.cloneNode( true )
+          .children[ 0 ];
+
+        // Get the error element
+        const errorElem = newElem.getElementsByClassName( 'error' )[ 0 ];
+
+        newElem.addEventListener( 'submit', async () => {
+          const formData = new FormData( newElem );
+
+          const instructionList = formData.getAll( 'recipe' );
+
+          // Validate the instructions
+          if ( instructionList.some( instruction => !INSTRUCTION_REGEX.test( instruction ) ) ) {
+            errorElem.innerText = 'Invalid recipe step!';
+            return;
+          }
+
+          // Create the post
+          const newPost = {
+            user:   loggedInId,
+            recipe: instructionList,
+            body:   formData.get( 'body' )
+          };
+
+          // Send the request to create a new post
+          const response = await jsonBodyErrorToResponse(
+            fetch(
+              '/api/post',
+              {
+                method:  'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify( newPost )
+              }
+            )
+          );
+
+          // If there was an error, show it
+          if ( !response.success ) {
+            errorElem.innerText = response.message;
+            return;
+          }
+
+          // Go to the user's page
+          changePage( 'profile' );
+        } );
+
+        // Get the instruction list
+        const instructions = newElem.getElementsByClassName( 'post-new-recipe' )[ 0 ];
+
+        // Get the new instruction button
+        const newInstruction = newElem.querySelector( '[ type = "button" ]' );
+
+        newInstruction.addEventListener( 'click', () => {
+          // If the length is 20 elements or more, show an error
+          if ( instructions.childElementCount === 19 )
+            newInstruction.setAttribute( 'hidden', '' );
+
+          // Clone the PostNewInstruction template
+          const instruction = templates.PostNewInstruction.content.cloneNode( true )
+            .children[ 0 ];
+
+          instructions.appendChild( instruction );
+        } );
+
+        instructions.addEventListener( 'click', ( { target } ) => {
+          const action = target.getAttribute( 'data-action' );
+
+          if ( !action )
+            return;
+
+          // Get the instruction element
+          const instruction = target.parentElement;
+
+          switch ( action ) {
+            case 'delete':
+              // Remove the instruction element
+              instruction.remove();
+              break;
+
+            case 'up':
+              // Move the instruction up
+              if ( instruction.previousElementSibling )
+                instruction.parentNode.insertBefore( instruction, instruction.previousElementSibling );
+              break;
+
+            case 'down':
+              // Move the instruction down
+              if ( instruction.nextElementSibling )
+                instruction.parentNode.insertBefore( instruction.nextElementSibling, instruction );
+              break;
+
+            default:
+              break;
+          }
+        } );
+
+        instructions.addEventListener( 'input', ( { target } ) => {
+          // Validate the instruction
+          if ( INSTRUCTION_REGEX.test( target.value ) )
+            target.classList.remove( 'invalid' );
+          else
+            target.classList.add( 'invalid' );
+        } );
+
+        return newElem;
+      },
+      postEdit: data => {
+        // Clone the PostNew template
+        const editElem = templates.PostNew.content.cloneNode( true )
+          .children[ 0 ];
+
+        // Get the error element
+        const errorElem = editElem.getElementsByClassName( 'error' )[ 0 ];
+
+        editElem.addEventListener( 'submit', async () => {
+          const formData = new FormData( editElem );
+
+          const recipe = formData.getAll( 'recipe' );
+
+          // Validate the instructions
+          if ( recipe.some( instruction => !INSTRUCTION_REGEX.test( instruction ) ) ) {
+            errorElem.innerText = 'Invalid recipe step!';
+            return;
+          }
+
+          // Get the post body
+          const newBody = formData.get( 'body' );
+
+          // Create the post update with the body if changed
+          const postUpdate = newBody === data.body
+            ? {}
+            : { body: newBody };
+
+          // If the recipe has changed, add it to the update
+          if ( !shallowCompare( recipe, data.recipe ) )
+            postUpdate.recipe = recipe;
+
+          // If nothing has changed, exit
+          if ( Object.keys( postUpdate ).length === 0 )
+            changePage( 'profile' );
+
+          // Send the request to update the post
+          const response = await jsonBodyErrorToResponse(
+            fetch(
+              `/api/post?id=${ data.id }`,
+              {
+                method:  'PATCH',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify( postUpdate )
+              }
+            )
+          );
+
+          // If there was an error, show it
+          if ( !response.success ) {
+            errorElem.innerText = response.message;
+            return;
+          }
+
+          // Go to the user's page
+          changePage( 'profile' );
+        } );
+
+        // Get the instruction list
+        const instructions = editElem.getElementsByClassName( 'post-new-recipe' )[ 0 ];
+
+        // Set the current instructions
+        for ( const instruction of data.recipe ) {
+          // Clone the PostNewInstruction template
+          const instructionElem = templates.PostNewInstruction.content.cloneNode( true )
+            .children[ 0 ];
+
+          // Set the instruction
+          instructionElem.querySelector( '[ name = "recipe" ]' ).value = instruction;
+          instructions.appendChild( instructionElem );
+        }
+
+        // Get the new instruction button
+        const newInstruction = editElem.querySelector( '[ type = "button" ]' );
+
+        newInstruction.addEventListener( 'click', () => {
+          // If the length is 20 elements or more, show an error
+          if ( instructions.childElementCount === 19 )
+            newInstruction.setAttribute( 'hidden', '' );
+
+          // Clone the PostNewInstruction template
+          const instruction = templates.PostNewInstruction.content.cloneNode( true )
+            .children[ 0 ];
+
+          instructions.appendChild( instruction );
+        } );
+
+        instructions.addEventListener( 'click', ( { target } ) => {
+          const action = target.getAttribute( 'data-action' );
+
+          if ( !action )
+            return;
+
+          // Get the instruction element
+          const instruction = target.parentElement;
+
+          switch ( action ) {
+            case 'delete':
+              // Remove the instruction element
+              instruction.remove();
+              break;
+
+            case 'up':
+              // Move the instruction up
+              if ( instruction.previousElementSibling )
+                instruction.parentNode.insertBefore( instruction, instruction.previousElementSibling );
+              break;
+
+            case 'down':
+              // Move the instruction down
+              if ( instruction.nextElementSibling )
+                instruction.parentNode.insertBefore( instruction.nextElementSibling, instruction );
+              break;
+
+            default:
+              break;
+          }
+        } );
+
+        instructions.addEventListener( 'input', ( { target } ) => {
+          // Validate the instruction
+          if ( INSTRUCTION_REGEX.test( target.value ) )
+            target.classList.remove( 'invalid' );
+          else
+            target.classList.add( 'invalid' );
+        } );
+
+        // Get the body element
+        const body = editElem.querySelector( '[ name = "body" ]' );
+        // Set the body
+        body.value = data.body;
+
+        // Create the delete element
+        const deleteElem = document.createElement( 'input' );
+        deleteElem.setAttribute( 'type', 'button' );
+        deleteElem.style.borderColor = 'var(--fg-error)';
+        deleteElem.setAttribute( 'value', 'Delete' );
+        editElem.appendChild( deleteElem );
+
+        deleteElem.addEventListener( 'click', async () => {
+          const confirmed = deleteElem.getAttribute( 'data-confirm' );
+
+          if ( confirmed === null ) {
+            // Change the button to a confirm button
+            deleteElem.setAttribute( 'data-confirm', '' );
+            deleteElem.setAttribute( 'value', 'Confirm deletion' );
+
+            setTimeout( () => {
+              if ( deleteElem ) {
+                // Change the button to a delete button after 3 seconds
+                deleteElem.removeAttribute( 'data-confirm' );
+                deleteElem.setAttribute( 'value', 'Delete' );
+              }
+            }, 3000 );
+            return;
+          }
+
+          // Send the request to delete the user
+          const response = await jsonBodyErrorToResponse(
+            fetch(
+              `/api/post?id=${ data.id }`,
+              {
+                method: 'DELETE'
+              }
+            )
+          );
+
+          // If there was an error, show it
+          if ( !response.success ) {
+            errorElem.innerText = response.message;
+            return;
+          }
+
+          changePage( 'profile' );
+        } );
+
+        // Get the submit button
+        const saveButton = editElem.querySelector( '[ type = "submit" ]' );
+        saveButton.setAttribute( 'value', 'Save' );
+
+        return editElem;
       },
       user: data => {
         // Clone the User template
@@ -1372,6 +1812,7 @@
     <div class="profile">
       <span data-action="edit" tabindex="0" role="link">Edit profile</span>
       <span data-action="new-post" tabindex="0" role="link">New post</span>
+      <span data-action="logout" tabindex="0" role="link">Logout</span>
     </div>
   </template>
 
@@ -1381,6 +1822,36 @@
       <ol class="post-recipe"></ol>
       <span class="post-body"></span>
     </div>
+  </template>
+
+  <template id="PostNew">
+    <form action="javascript:void(0);">
+      <label>
+        Drink recipe:
+        <ol class="post-new-recipe"></ol>
+      </label>
+      <input type="button" value="+ Step">
+      
+      <label>
+        Body:
+        <textarea name="body" cols="30" rows="10"></textarea>
+      </label>
+
+      <input type="submit" value="Post">
+
+      <span class="error"></span>
+    </form>
+  </template>
+
+  <template id="PostNewInstruction">
+    <li>
+      <label>
+        <input type="text" name="recipe">
+      </label>
+      <input type="button" value="&uarr;" data-action="up">
+      <input type="button" value="-" data-action="delete">
+      <input type="button" value="&darr;" data-action="down">
+    </li>
   </template>
 
   <template id="User">

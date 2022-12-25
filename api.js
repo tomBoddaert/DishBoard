@@ -220,6 +220,8 @@ export function getData( type, options ) {
       // If the post's user was not excluded, get it
       if ( !( '-user' in options ) )
         result.user = db.getUser( result.user );
+      else
+        delete result.user;
 
       break;
 
