@@ -613,7 +613,7 @@ export function updateData( type, idOptions, options ) {
         // If the body is not a string, throw an error
         validateParamType( options.body, 'body', 'string' );
 
-        db.updatePostRecipe( id, options.recipe );
+        db.updatePostBody( id, options.body );
       }
 
       // Return true

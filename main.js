@@ -22,7 +22,9 @@ else {
     const user = db.addUser(
       `testUser-${ i }`,
       `#${ ( i * 0x200a05 % 0xfb00c0 ).toString( 16 ).padStart( 6, '0' ) }`,
-      't'
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@£$%^&*()[{]};:\'"\\|/?,<.>'[
+        i % 88
+      ]
     );
     for ( let j = 0; j < i; j++ )
       db.addUserFollow( user, j );

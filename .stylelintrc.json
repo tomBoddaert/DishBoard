@@ -53,13 +53,13 @@
     "selector-list-comma-space-before": "never",
     "media-query-list-comma-newline-before": "always",
     "at-rule-semicolon-space-before": "never",
-    "linebreaks": "unix",
     "no-extra-semicolons": true,
 
     "selector-attribute-brackets-space-inside": "always",
     "selector-pseudo-class-parentheses-space-inside": "always",
     "selector-list-comma-newline-after": "always",
     "selector-attribute-operator-space-before": "always",
-    "selector-attribute-operator-space-after": "always"
+    "selector-attribute-operator-space-after": "always",
+    "media-feature-parentheses-space-inside": "always"
   }
 }

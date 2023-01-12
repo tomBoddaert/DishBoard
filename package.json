@@ -7,7 +7,7 @@
   "author": "Tom Boddaert",
   "main": "main.js",
   "scripts": {
-    "lint": "npx eslint --ext .js,.html,.json . ; npx stylelint \"*.{html,css}\" \"resources/**/*.{html,css}\"",
+    "lint": "npx eslint --ext .js,.html,.json . && npx stylelint \"*.{html,css}\" \"resources/**/*.{html,css}\"",
     "test": "NODE_OPTIONS=--experimental-vm-modules npx jest",
     "start": "node main.js -p",
     "start-dev": "npx nodemon -i data.json main.js"

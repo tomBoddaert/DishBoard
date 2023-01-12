@@ -11,7 +11,7 @@
 
 import fs from 'fs';
 
-// Testing data
+// Empty data
 let data = {
   users:      {},
   posts:      {},
@@ -26,6 +26,9 @@ let data = {
 
 
 /** Stringify the database
+ * This function should only give data on the current state
+ * of the database if an actual database is used, rather than
+ * converting the whole database to a JSON string
  * @param { ...any } args
  * @returns { string }
  */
@@ -64,6 +67,7 @@ export function useProductionDB() {
 
 
   // Exit code adapted from https://stackoverflow.com/a/14032965
+  //  by Emil Condrea, 25/12/2012, last accessed 12/01/2023
 
   // Stop the program from closing instantly
   process.stdin.resume();
