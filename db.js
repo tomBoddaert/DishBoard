@@ -337,7 +337,7 @@ export function getPosts( n, o ) {
 /** Add a new post to the database
  * @param { number } user
  * @param { number } timestamp
- * @param { string } recipe
+ * @param { Array< string > } recipe
  * @param { string } body
  * @returns { number }
  */

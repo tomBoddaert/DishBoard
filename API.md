@@ -1,4 +1,4 @@
-# DrinkShare API
+# DishBoard API
 
 ## Responses
 
@@ -75,7 +75,7 @@ An object `Object` with options `op1` and `op2` is denoted `Object<op1, op2>`
     <td><code>timestamp</code></td> <td><code>integer</code>, <div>milliseconds since epoch</div></td>
   </tr>
   <tr>
-    <td><code>recipe</code></td> <td><code>string[]</code> <div>string: <code>/^[A-Za-z0-9,.\- ]{1,100}$/</code></div> <div>Array length between 0 and 20 inclusive</div></td>
+    <td><code>recipe</code></td> <td><code>string[]</code> <div>string: <code>/^[A-Za-z0-9,.\-()° ]{1,100}$/</code></div> <div>Array length between 0 and 20 inclusive</div></td>
   </tr>
   <tr>
     <td><code>body</code></td> <td><code>string</code></td>
@@ -304,7 +304,7 @@ The body must be JSON encoded. This is a representation of the user.
     <td><code>user</code></td> <td><code>integer</code> (user's id)</td>
   </tr>
   <tr>
-    <td><code>recipe</code></td> <td><code>string[]</code> <div>string: <code>/^[A-Za-z0-9,.\- ]{1,100}$/</code></div> <div>Array length between 0 and 20 inclusive</div></td>
+    <td><code>recipe</code></td> <td><code>string[]</code> <div>string: <code>/^[A-Za-z0-9,.\-()° ]{1,100}$/</code></div> <div>Array length between 0 and 20 inclusive</div></td>
   </tr>
   <tr>
     <td><code>body</code></td> <td><code>string</code></td>
@@ -346,7 +346,7 @@ The body must be JSON encoded. This is a partial representation of a post.
     <td><code>user</code></td> <td><code>integer</code> (user's id)</td> <td>yes</td>
   </tr>
   <tr>
-    <td><code>recipe</code></td> <td><code>string[]</code> <div>string: <code>/^[A-Za-z0-9,.\- ]{1,100}$/</code></div> <div>Array length between 0 and 20 inclusive</div></td> <td>yes</td>
+    <td><code>recipe</code></td> <td><code>string[]</code> <div>string: <code>/^[A-Za-z0-9,.\-()° ]{1,100}$/</code></div> <div>Array length between 0 and 20 inclusive</div></td> <td>yes</td>
   </tr>
   <tr>
     <td><code>body</code></td> <td><code>string</code></td> <td>yes</td>

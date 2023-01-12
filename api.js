@@ -30,7 +30,7 @@ const VALID_GLYPHS
   = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@£$%^&*()[{]};:\'"\\|/?,<.>';
 
 /** Regex to validate recipe instructions */
-const INSTRUCTION_REGEX = /^[A-Za-z0-9,.\- ]{1,100}$/;
+const INSTRUCTION_REGEX = /^[A-Za-z0-9,.\-()° ]{1,100}$/;
 
 /** Check that the value was provided, otherwise throw an error
  * @param { any } value

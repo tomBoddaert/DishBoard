@@ -18,6 +18,22 @@ app.listen( 8080, () => console.log( 'Listening on http://localhost:8080/' ) );
 if ( args.includes( '--production' ) || args.includes( '-p' ) )
   useProductionDB();
 else {
+  for ( let i = 0; i < 50; i++ ) {
+    const user = db.addUser(
+      `testUser-${ i }`,
+      `#${ ( i * 0x200a05 % 0xfb00c0 ).toString( 16 ).padStart( 6, '0' ) }`,
+      't'
+    );
+    for ( let j = 0; j < i; j++ )
+      db.addUserFollow( user, j );
+
+    db.addPost( user, 0, [
+      'This post is generated to test',
+      'Page functionality with a large',
+      'Number of items'
+    ], `This is test post #${ i }` );
+  }
+
   const ZERO = db.addUser( 'userZero', '#888888', 'a' );
   const ONE = db.addUser( 'userOne', '#cc8888', 'b' );
   const TWO = db.addUser( 'userTwo', '#88cc88', 'c' );
@@ -45,26 +61,24 @@ else {
   } )();
 
   db.addPost( ZERO, date(), [
-    'Boil some water',
-    'Place a teabag into a mug',
-    'Add the freshly boiled water to the mug',
-    'Leave the tea to steep for three minutes',
-    'Remove the teabag',
-    'Add some oat milk, making sure you shake it before'
-  ], 'Welcome to DrinkShare.\nAs you can probably tell, I\'m drinking tea.' );
-  db.addPost( ZERO, date(), [
-    'Boil some water',
-    'Place the plunger of an Aeropress into the top and invert',
-    'Put four teaspoons of espresso grind coffee into the inverted Aeropress',
-    'Add the freshly boiled water',
-    'Add the filter and filter holder',
-    'Leave the coffee to steep for five minutes',
-    'Put some oat milk in a mug in the microwave to heat up, making sure you shake it before',
-    'Invert the Aeropress over the mug and slowly press the plunger down'
-  ], 'Good morning.\nI\'m drinking coffee.' );
+    'Add cut aubergine and courgette into medium-sized cubes to a roasting tin',
+    'Add sliced peppers and onions into medium squares',
+    'Add whole, peeled garlic cloves',
+    'Drizzle with olive oil, and heavily sprinkle with pepper flakes',
+    'Roast for 15 minutes at 200°C fan, mixing at 10 minutes, if it looks done by this point, stop',
+    'Serve on orzo, with fried halloumi'
+  ], 'This is a recipe for roasted vegetables, you can pretty much add any vegetable you want\
+ to it.' );
   db.addPost( ONE, date(), [
-    'Add two inches of ice cubes to a tall glass',
-    'Add two shots of Absolute\'s Watermelon Vodka to the glass',
-    'Fill with Coca-Cola'
-  ], 'Welcome to DrunkShare\nThis \'recipe\' may take a while to taste good.' );
+    'Dice half a brown / yellow onion and about 3 cloves of garlic (add more if you want)',
+    'Slice 80g of chestnut mushrooms',
+    'Fry the garlic in olive oil with pepper flakes and a pinch of salt for a minute',
+    'Add the onion, mushrooms and two teaspoons of sugar and fry until browning',
+    'Add a drained 400g tin of Cannellini beans, two 400g tins of chopped tomatoes, and\
+ 3 teaspoons of dried or fresh oregano',
+    'Add about 20 black olives',
+    'Let it reduce to a sauce-like consistency',
+    'Serve with spaghetti and vegetarian parmesan'
+  ], 'Welcome to DishBoard!\nFor copyright reasons, I have come up with all the recipes on here.\
+ I do not recommend trying any of them, and will not be held responsible if they make you ill.' );
 }
