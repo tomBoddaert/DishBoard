@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>DishBoard</title>
+  <link rel="icon" type="image/svg+xml" href="/resources/logo.svg?grey">
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=DM+Serif+Display&family=Roboto&display=swap');
@@ -73,16 +74,16 @@
       transition: color 0.25s, background-color 0.5s;
     }
 
-    /* -- Container -- */
-    body {
-      margin: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      row-gap: 20px;
+    /* -- Logo -- */
+    #logo {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      width: 6rem;
+      height: 6rem;
     }
 
-    /* Dark mode selector */
+    /* -- Dark mode selector -- */
     #dm-selector {
       position: fixed;
       top: 10px;
@@ -93,7 +94,20 @@
       user-select: none;
     }
 
+    /* -- Container -- */
+    body {
+      margin: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      row-gap: 20px;
+    }
+
     /* -- Navbar -- */
+    header {
+      display: contents;
+    }
+
     nav {
       margin: 0 4rem;
       padding: 1rem 2rem;
@@ -463,6 +477,12 @@
 
     /* -- Thin desktop changes -- */
     @media ( orientation: landscape ) and ( max-width: 64rem ) {
+      #logo {
+        position: absolute;
+        width: 5rem;
+        height: 5rem;
+      }
+
       main {
         width: 80%;
       }
@@ -470,8 +490,15 @@
 
     /* -- Mobile changes */
     @media ( orientation: portrait ) {
+      #logo,
       #dm-selector {
         position: absolute;
+      }
+
+      #logo {
+        position: relative;
+        top: 0;
+        left: 0;
       }
 
       main {
@@ -494,6 +521,7 @@
         column-gap: 0.8rem;
         border-right: none;
         border-bottom: solid var(--fg-secondary);
+        font-size: 1.5rem;
       }
 
       .post-recipe,
@@ -597,16 +625,20 @@
 
     let darkMode;
     let dmSelector;
+    let logo;
 
     /** Set the page theme
      * @param { boolean } dark - true if dark mode
      */
     function setTheme( dark ) {
       // Add or remove the dark class to root
-      if ( dark )
+      if ( dark ) {
         document.lastChild.classList.add( 'dark' );
-      else
+        logo?.postMessage( 'dark', '*' );
+      } else {
         document.lastChild.classList.remove( 'dark' );
+        logo?.postMessage( 'light', '*' );
+      }
 
       // Set the option in the local storage to make it persistent
       localStorage.setItem( 'dark', dark.toString() );
@@ -744,6 +776,7 @@
       if ( !update )
         return;
 
+      window.scrollTo( 0, 0 );
       await initPage[ currentPage ]();
 
       // Unset the new page data
@@ -828,7 +861,7 @@
       postEdit: async () => {
         // Get the post from the server
         const response = await jsonBodyErrorToResponse(
-          fetch( `/api/post?id=${ newPageData[ 0 ] }` )
+          fetch( `/api/post?id=${ newPageData }` )
         );
 
         // If the response is an error, show it
@@ -1462,6 +1495,8 @@
         // Set the user's data attributes
         userElem.setAttribute( 'data-user-glyph', data.user.glyph );
         userElem.setAttribute( 'data-user-username', data.user.username );
+        // Set the aria label attribute
+        userElem.setAttribute( 'aria-label', data.user.username );
         // Set the user's colour
         userElem.style.setProperty( '--glyph-colour', data.user.colour );
 
@@ -1516,6 +1551,10 @@
           const instructionList = formData.getAll( 'recipe' );
 
           // Validate the instructions
+          if ( instructionList.length === 0 ) {
+            errorElem.innerText = 'You must have at least one recipe step!';
+            return;
+          }
           if ( instructionList.some( instruction => !INSTRUCTION_REGEX.test( instruction ) ) ) {
             errorElem.innerText = 'Invalid recipe step!';
             return;
@@ -1863,6 +1902,10 @@
       // Get the dark mode selector
       dmSelector = document.getElementById( 'dm-selector' );
 
+      // Get the logo
+      logo = document.getElementById( 'logo' )
+        .contentWindow;
+
       // Set the dark mode selector's initial emoji
       if ( darkMode )
         dmSelector.innerText = '🌕';
@@ -1927,6 +1970,14 @@
     } );
 
 
+    /* -- On message -- */
+
+    window.addEventListener( 'message', e => {
+      if ( e.data === 'logoLoad' )
+        logo?.postMessage( darkMode ? 'dark' : 'light', '*' );
+    } );
+
+
     /* -- On before unload -- */
 
     // Scroll to the top on unload, so if refreshed, it
@@ -1961,7 +2012,7 @@
         Glyph:
         <div class="sign-up-glyph-input">
           <span class="sign-up-glyph-last" tabindex="0" role="button">&lt;</span>
-          <input type="text" name="glyph" class="sign-up-glyph" readonly tabindex="-1"></span>
+          <input type="text" name="glyph" class="sign-up-glyph" readonly tabindex="-1">
           <span class="sign-up-glyph-next" tabindex="0" role="button">&gt;</span>
         </div>
       </label>
@@ -2036,6 +2087,9 @@
   </template>
 
   <header>
+    <object id="logo" data="/resources/logo.svg" type="image/svg+xml">
+      The logo with the letters DB in the middle of a minimalist line drawing of a plate.
+    </object>
     <span id="dm-selector" tabindex="0" role="button">🌑</span>
     <nav>
       <span data-page-id="feed" class="active" tabindex="0" role="link">Feed</span>
