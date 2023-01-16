@@ -9,6 +9,47 @@ import express from 'express';
 
 import { APIError, getData, addData, deleteData, updateData } from './api.js';
 
+/** Run the function and catch API errors,
+ * and transform them into a response
+ * @param { Function } call
+ * @param { ...any } args
+ * @returns { Array< Object< string, any > | number | undefined > }
+ */
+function createAPIResult( call, ...args ) {
+  try {
+    return [ { success: true, data: call( ...args ) }, undefined ];
+  } catch ( e ) {
+    let result, status;
+    if ( e instanceof APIError ) {
+      // Bad request
+      result = { success: false, message: e.message };
+
+      // Copy the HTTP status from the error
+      status = e.status;
+    } else {
+      // Server error
+      result = { success: false, message: 'Internal error!' };
+      console.error( e );
+    }
+
+    return [ result, status ];
+  }
+}
+
+/** Send a result as a response
+ * @param { Response } res
+ * @param { Function } call
+ * @param { ...any } args
+ */
+function sendAPIResult( res, call, ...args ) {
+  const [ result, status ] = createAPIResult( call, ...args );
+
+  if ( status !== undefined )
+    res.status( status );
+
+  res.json( result );
+}
+
 // Create the app
 export const app = express();
 
@@ -27,114 +68,34 @@ app.get( '/', async ( req, res ) => {
   res.end( page );
 } );
 
-// Add the GET method to the API
+// Define the GET method for the API
 app.get( '/api/:type', ( req, res ) => {
   // Get the object of the request
   const { type } = req.params;
-  let result;
 
-  try {
-    // Get the data from the database and wrap it
-    result = { success: true, data: getData( type, req.query ) };
-  } catch ( e ) {
-    if ( e instanceof APIError ) {
-      // Bad request
-      result = { success: false, message: e.message };
-
-      // If the HTTP status was set in the error, add it to the request
-      if ( e.status !== undefined )
-        res.status( e.status );
-    } else {
-      // Server error
-      result = { success: false, message: 'Internal error!' };
-      console.error( e );
-    }
-  }
-
-  res.contentType( 'application/json' );
-  res.json( result );
+  sendAPIResult( res, getData, type, req.query );
 } );
 
-// Add the POST method to the API
+// Define the POST method for the API
 app.post( '/api/:type', ( req, res ) => {
   // Get the object of the request
   const { type } = req.params;
-  let result;
 
-  try {
-    // Add the data to the database and wrap the response
-    result = { success: true, data: addData( type, req.body ) };
-  } catch ( e ) {
-    if ( e instanceof APIError ) {
-      // Bad request
-      result = { success: false, message: e.message };
-
-      // If the HTTP status was set in the error, add it to the request
-      if ( e.status !== undefined )
-        res.status( e.status );
-    } else {
-      // Server error
-      result = { success: false, message: 'Internal error!' };
-      console.error( e );
-    }
-  }
-
-  res.contentType( 'application/json' );
-  res.json( result );
+  sendAPIResult( res, addData, type, req.body );
 } );
 
-// Add the DELETE method to the API
+// Define the DELETE method for the API
 app.delete( '/api/:type', ( req, res ) => {
   // Get the object of the request
   const { type } = req.params;
-  let result;
 
-  try {
-    // Delete the data from the database and wrap the response
-    result = { success: true, data: deleteData( type, req.query ) };
-  } catch ( e ) {
-    if ( e instanceof APIError ) {
-      // Bad request
-      result = { success: false, message: e.message };
-
-      // If the HTTP status was set in the error, add it to the request
-      if ( e.status !== undefined )
-        res.status( e.status );
-    } else {
-      // Server error
-      result = { success: false, message: 'Internal error!' };
-      console.error( e );
-    }
-  }
-
-  res.contentType( 'application/json' );
-  res.json( result );
+  sendAPIResult( res, deleteData, type, req.query );
 } );
 
-// Add the PATCH method to the API
+// Define the PATCH method for the API
 app.patch( '/api/:type', ( req, res ) => {
   // Get the object of the request
   const { type } = req.params;
-  let result;
 
-  try {
-    // Patch the data with the database and wrap the response
-    result = { success: true, data: updateData( type, req.query, req.body ) };
-  } catch ( e ) {
-    if ( e instanceof APIError ) {
-      // Bad request
-      result = { success: false, message: e.message };
-
-      // If the HTTP status was set in the error, add it to the request
-      if ( e.status !== undefined )
-        res.status( e.status );
-    } else {
-      // Server error
-      result = { success: false, message: 'Internal error!' };
-      console.error( e );
-    }
-  }
-
-  res.contentType( 'application/json' );
-  res.json( result );
+  sendAPIResult( res, updateData, type, req.query, req.body );
 } );
