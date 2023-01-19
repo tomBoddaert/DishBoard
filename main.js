@@ -4,13 +4,38 @@
  */
 
 
+import { accessSync, constants as fsConstants, copyFileSync } from 'fs';
+try {
+  // Attempt to access the .env file
+  accessSync( '.env', fsConstants.W_OK );
+} catch ( e ) {
+  if ( e.code !== 'ENOENT' )
+    throw e;
+
+  // If it doesn't exist, copy it from .env.template
+  copyFileSync( '.env.template', '.env' );
+  console.log( 'Created a .env file for configuration!' );
+}
+
+// Load environment variables from the .env file
+import { config as dotenvConfig } from 'dotenv';
+dotenvConfig();
+// Get the SERVER_PORT and SERVER_HOST environment variables
+const { SERVER_PORT, SERVER_HOST } = process.env;
+
 import { useProductionDB, default as db } from './db.js';
 import { app } from './server.js';
+import { setDebug } from './api.js';
 
+// Get the command line arguments
 const args = process.argv.slice( 2 );
 
 // Listen for requests
-app.listen( 8080, () => console.log( 'Listening on http://localhost:8080/' ) );
+app.listen(
+  SERVER_PORT,
+  SERVER_HOST,
+  () => console.log( `Listening on http://${ SERVER_HOST }:${ SERVER_PORT }/` )
+);
 
 
 // If the argument is provided, switch to the production database, otherwise
@@ -83,4 +108,6 @@ else {
     'Serve with spaghetti and vegetarian parmesan'
   ], 'Welcome to DishBoard!\nFor copyright reasons, I have come up with all the recipes on here.\
  I do not recommend trying any of them, and will not be held responsible if they make you ill.' );
+
+  setDebug( true );
 }

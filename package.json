@@ -1,6 +1,6 @@
 {
   "name": "dishboard",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "type": "module",
   "description": "A social media",
   "license": "UNLICENSED",
@@ -14,6 +14,7 @@
     "start-dev": "npx nodemon -i data.json main.js"
   },
   "dependencies": {
+    "dotenv": "^16.0.3",
     "express": "^4.18.2"
   },
   "devDependencies": {

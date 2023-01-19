@@ -1,5 +1,7 @@
 # DishBoard API
 
+If a search parameter or key in a request body is not marked as optional, then it is required! The errors from the server should be human readable and give you specific messages about what went wrong. 
+
 ## Responses
 
 Every response that returns a `200` HTTP status code, will be JSON encoded. The data will be in one of the two formats:
@@ -423,6 +425,64 @@ The body must be JSON encoded. This is a partial representation of a post.
 
 `User[]` in order from newest to oldest with a maximum length of the `n` parameter, and offset of the `o` parameter
 
+# `/api/searchUsers`
+
+## GET
+
+### Parameters
+
+#### `query`
+
+<table>
+  <tr>
+    <td>Optional</td> <td>no</td>
+  </tr>
+  <tr>
+    <th>Arguments</tr>
+  </tr>
+  <tr>
+    <td>query</td> <td>URL encoded <code>string</code></td>
+  </tr>
+</table>
+
+#### `n`
+
+<table>
+  <tr>
+    <td>Optional</td> <td>yes</td>
+  </tr>
+  <tr>
+    <td>Default</td> <td><code>10</code></td>
+  </tr>
+  <tr>
+    <th>Arguments</th>
+  </tr>
+  <tr>
+    <td>number</td> <td><code>integer</code></td>
+  </tr>
+</table>
+
+#### `o`
+
+<table>
+  <tr>
+    <td>Optional</td> <td>yes</td>
+  </tr>
+  <tr>
+    <td>Default</td> <td><code>0</code></td>
+  </tr>
+  <tr>
+    <th>Arguments</th>
+  </tr>
+  <tr>
+    <td>offset</td> <td><code>integer</code></td>
+  </tr>
+</table>
+
+### Response data
+
+`User[]` in order from most relevant to least relevant with a maximum length of the `n` parameter, and offset of the `o` parameter
+
 # `/api/posts`
 
 ## GET
@@ -466,6 +526,64 @@ The body must be JSON encoded. This is a partial representation of a post.
 ### Response data
 
 `Post[]` in order from newest to oldest with a maximum length of the `n` parameter, and offset of the `o` parameter
+
+# `/api/searchPosts`
+
+## GET
+
+### Parameters
+
+#### `query`
+
+<table>
+  <tr>
+    <td>Optional</td> <td>no</td>
+  </tr>
+  <tr>
+    <th>Arguments</tr>
+  </tr>
+  <tr>
+    <td>query</td> <td>URL encoded <code>string</code></td>
+  </tr>
+</table>
+
+#### `n`
+
+<table>
+  <tr>
+    <td>Optional</td> <td>yes</td>
+  </tr>
+  <tr>
+    <td>Default</td> <td><code>10</code></td>
+  </tr>
+  <tr>
+    <th>Arguments</th>
+  </tr>
+  <tr>
+    <td>number</td> <td><code>integer</code></td>
+  </tr>
+</table>
+
+#### `o`
+
+<table>
+  <tr>
+    <td>Optional</td> <td>yes</td>
+  </tr>
+  <tr>
+    <td>Default</td> <td><code>0</code></td>
+  </tr>
+  <tr>
+    <th>Arguments</th>
+  </tr>
+  <tr>
+    <td>offset</td> <td><code>integer</code></td>
+  </tr>
+</table>
+
+### Response data
+
+`Post[]` in order from most relevant to least relevant with a maximum length of the `n` parameter, and offset of the `o` parameter
 
 # `/api/follow`
 

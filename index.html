@@ -334,6 +334,12 @@
       transition: color 0.25s;
     }
 
+    /* -- Search -- */
+    .search {
+      flex-direction: row;
+      justify-content: center;
+    }
+
     /* -- Post -- */
     .post {
       display: flex;
@@ -508,6 +514,10 @@
       nav > [ data-page-id = 'profile' ] {
         flex-direction: column;
         padding: 0.8rem;
+      }
+
+      .search {
+        flex-direction: column;
       }
 
       .post {
@@ -794,7 +804,7 @@
      * @type { Object< string, InitFunction > }
      */
     const initPage = {
-      profile: async () => {
+      async profile() {
         // If the logged in id is undefined, show the login page
         if ( loggedInId === undefined ) {
           const loginElem = construct.login();
@@ -836,12 +846,12 @@
           } );
         }
       },
-      signUp: async () => {
+      async signUp() {
         const signUpElem = construct.signUp();
 
         main.appendChild( signUpElem );
       },
-      profileEdit: async () => {
+      async profileEdit() {
         // Get the current user from the server
         const response = await jsonBodyErrorToResponse(
           fetch( `/api/user?id=${ loggedInId }` )
@@ -854,11 +864,11 @@
         const editElem = construct.profileEdit( response.data );
         main.appendChild( editElem );
       },
-      postNew: async () => {
+      async postNew() {
         const newElem = construct.postNew();
         main.appendChild( newElem );
       },
-      postEdit: async () => {
+      async postEdit() {
         // Get the post from the server
         const response = await jsonBodyErrorToResponse(
           fetch( `/api/post?id=${ newPageData }` )
@@ -871,7 +881,11 @@
         const editElem = construct.postEdit( response.data );
         main.appendChild( editElem );
       },
-      feed: async () => {
+      async feed() {
+        // Add the search box
+        const search = construct.search();
+        main.appendChild( search );
+
         const displayedPosts = [];
         let offset = 0;
 
@@ -899,14 +913,17 @@
           }
 
           offset += 10;
-          if ( data.length >= 10 )
+          if ( data.length === 10 )
             endCallback = append;
         };
 
         await append();
-        endCallback = append;
       },
-      users: async () => {
+      async users() {
+        // Add the search box
+        const search = construct.search();
+        main.appendChild( search );
+
         const displayedUsers = [];
         let offset = 0;
 
@@ -940,7 +957,7 @@
 
         await append();
       },
-      user: async () => {
+      async user() {
         if ( newPageData[ 0 ] === loggedInId && !newPageData[ 2 ] )
           // await so that newPageData is not unset
           // eslint-disable-next-line no-return-await
@@ -1112,11 +1129,65 @@
           isFollowing = !isFollowing;
           followElem.setAttribute( 'value', isFollowing ? 'Unfollow' : 'Follow' );
         } );
+      },
+      async search() {
+        const [ type, query ] = newPageData;
+
+        const searchElem = construct.search( query, type );
+        main.appendChild( searchElem );
+
+        const displayed = [];
+        let offset = 0;
+
+        const append = async () => {
+          // Get the search results from the server
+          const response = await jsonBodyErrorToResponse(
+            fetch( `/api/search${
+              type === 'feed' ? 'posts' : 'users'
+            }?query=${ encodeURI( query ) }&n=10&o=${ offset }` )
+          );
+
+          // If the response is an error, show it
+          if ( !response.success )
+            return errorToMain( response.message );
+
+          // Get the data
+          const { data } = response;
+
+          for ( const entry of data ) {
+            if ( displayed.includes( entry.id ) )
+              continue;
+            displayed.push( entry.id );
+
+            // For each entry, create an element and append it to the main container
+            let elem;
+            switch ( type ) {
+              case 'feed':
+                elem = construct.post( entry );
+                break;
+
+              case 'users':
+                elem = construct.user( entry );
+                break;
+
+              default:
+                continue;
+            }
+
+            main.appendChild( elem );
+          }
+
+          offset += 10;
+          if ( data.length === 10 )
+            endCallback = append;
+        };
+
+        await append();
       }
     };
 
     const construct = {
-      profile: () => {
+      profile() {
         // Clone the Profile template
         const profileElem = templates.Profile.content.cloneNode( true )
           .children[ 0 ];
@@ -1145,7 +1216,7 @@
 
         return profileElem;
       },
-      profileEdit: data => {
+      profileEdit( data ) {
         // Clone the profile edit template
         const editElem = templates.SignUp.content.cloneNode( true )
           .children[ 0 ];
@@ -1153,7 +1224,9 @@
         // Get the error element
         const errorElem = editElem.getElementsByClassName( 'error' )[ 0 ];
 
-        editElem.addEventListener( 'submit', async () => {
+        editElem.addEventListener( 'submit', async event => {
+          event.preventDefault();
+
           const formData = new FormData( editElem );
 
           // Validate the username
@@ -1305,7 +1378,7 @@
 
         return editElem;
       },
-      login: () => {
+      login() {
         // Clone the Login template
         const loginElem = templates.Login.content.cloneNode( true )
           .children[ 0 ];
@@ -1313,7 +1386,10 @@
         // Get the error element
         const errorElem = loginElem.getElementsByClassName( 'error' )[ 0 ];
 
-        loginElem.addEventListener( 'submit', async ( { submitter } ) => {
+        loginElem.addEventListener( 'submit', async event => {
+          event.preventDefault();
+          const { submitter } = event;
+
           const action = submitter.getAttribute( 'data-login-action' );
 
           const formData = new FormData( loginElem );
@@ -1377,7 +1453,7 @@
 
         return loginElem;
       },
-      signUp: () => {
+      signUp() {
         // Clone the SignUp template
         const signUpElem = templates.SignUp.content.cloneNode( true )
           .children[ 0 ];
@@ -1385,7 +1461,9 @@
         // Get the error element
         const errorElem = signUpElem.getElementsByClassName( 'error' )[ 0 ];
 
-        signUpElem.addEventListener( 'submit', async () => {
+        signUpElem.addEventListener( 'submit', async event => {
+          event.preventDefault();
+
           const formData = new FormData( signUpElem );
 
           // Validate the username
@@ -1482,7 +1560,7 @@
 
         return signUpElem;
       },
-      post: data => {
+      post( data ) {
         // Clone the Post template
         const postElem = templates.Post.content.cloneNode( true )
           .children[ 0 ];
@@ -1537,7 +1615,7 @@
         // Return the saturated element
         return postElem;
       },
-      postNew: () => {
+      postNew() {
         // Clone the PostNew template
         const newElem = templates.PostNew.content.cloneNode( true )
           .children[ 0 ];
@@ -1545,7 +1623,9 @@
         // Get the error element
         const errorElem = newElem.getElementsByClassName( 'error' )[ 0 ];
 
-        newElem.addEventListener( 'submit', async () => {
+        newElem.addEventListener( 'submit', async event => {
+          event.preventDefault();
+
           const formData = new FormData( newElem );
 
           const instructionList = formData.getAll( 'recipe' );
@@ -1651,7 +1731,7 @@
 
         return newElem;
       },
-      postEdit: data => {
+      postEdit( data ) {
         // Clone the PostNew template
         const editElem = templates.PostNew.content.cloneNode( true )
           .children[ 0 ];
@@ -1834,7 +1914,7 @@
 
         return editElem;
       },
-      user: data => {
+      user( data ) {
         // Clone the User template
         const userElem = templates.User.content.cloneNode( true )
           .children[ 0 ];
@@ -1879,6 +1959,27 @@
         } );
 
         return userElem;
+      },
+      search( value, type ) {
+        // Clone the search template
+        const searchElem = templates.Search.content.cloneNode( true )
+          .children[ 0 ];
+
+        if ( value !== undefined )
+          searchElem.querySelector( '[ type = "text" ]' )
+            .value = value;
+
+        searchElem.addEventListener( 'submit', async event => {
+          event.preventDefault();
+
+          const formData = new FormData( searchElem );
+          const query = formData.get( 'query' );
+
+          newPageData = [ type ?? currentPage, query ];
+          changePage( 'search' );
+        }, { once: true } );
+
+        return searchElem;
       }
     };
 
@@ -2084,6 +2185,13 @@
         </span>
       </span>
     </div>
+  </template>
+
+  <template id="Search">
+    <form class="search" action="javascript:void(0);">
+      <input type="text" name="query" placeholder="Query">
+      <input type="submit" value="Search">
+    </form> 
   </template>
 
   <header>

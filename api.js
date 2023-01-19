@@ -7,6 +7,24 @@
 import db from './db.js';
 
 
+let debug = false;
+
+/** Set the debug option
+ * @param { boolean } value
+ */
+export function setDebug( value ) {
+  debug = value;
+}
+
+/** Log if in debug mode
+ * @param { ...any } args
+ */
+export function log( ...args ) {
+  if ( debug )
+    console.log( ...args );
+}
+
+
 /** Error for bad API calls */
 export class APIError extends Error {
   /** Error for bad API calls
@@ -150,7 +168,7 @@ export function getData( type, options ) {
 
   switch ( type ) {
     case 'user':
-      console.log( `user: ${ JSON.stringify( options ) }` );
+      log( `user: ${ JSON.stringify( options ) }` );
 
       // If neither the id or username parameters are provided, throw an error
       if ( options.id === undefined && options.username === undefined )
@@ -205,7 +223,7 @@ export function getData( type, options ) {
       break;
 
     case 'post':
-      console.log( `post: ${ JSON.stringify( options ) }` );
+      log( `post: ${ JSON.stringify( options ) }` );
 
       // Parse the id as an integer, if it was not provided or is not an integer,
       //  throw an error
@@ -226,7 +244,7 @@ export function getData( type, options ) {
       break;
 
     case 'users':
-      console.log( `users: ${ JSON.stringify( options ) }` );
+      log( `users: ${ JSON.stringify( options ) }` );
 
       // Get the number of users with default value and parse it as an integer
       n = validateParamParseIntDefault( options.n, 'n', 10 );
@@ -238,8 +256,25 @@ export function getData( type, options ) {
       result = db.getUsers( n, o );
       break;
 
+    case 'searchUsers':
+    case 'searchusers':
+      log( `searchUsers: ${ JSON.stringify( options ) }` );
+
+      // Check that the query was provided
+      validateParamGiven( 'query', options.query );
+
+      // Get the number of users with default value and parse it as an integer
+      n = validateParamParseIntDefault( options.n, 'n', 10 );
+
+      // Get the offset with default value and parse it as an integer
+      o = validateParamParseIntDefault( options.o, 'o', 0 );
+
+      // Get the results
+      result = db.getUsersSearch( decodeURI( options.query ), n, o );
+      break;
+
     case 'posts':
-      console.log( `posts: ${ JSON.stringify( options ) }` );
+      log( `posts: ${ JSON.stringify( options ) }` );
 
       // Get the number of posts with default value and parse it as an integer
       n = validateParamParseIntDefault( options.n, 'n', 10 );
@@ -252,8 +287,25 @@ export function getData( type, options ) {
 
       break;
 
+    case 'searchPosts':
+    case 'searchposts':
+      log( `searchPosts: ${ JSON.stringify( options ) }` );
+
+      // Check that the query was provided
+      validateParamGiven( 'query', options.query );
+
+      // Get the number of users with default value and parse it as an integer
+      n = validateParamParseIntDefault( options.n, 'n', 10 );
+
+      // Get the offset with default value and parse it as an integer
+      o = validateParamParseIntDefault( options.o, 'o', 0 );
+
+      // Get the results
+      result = db.getPostsSearch( decodeURI( options.query ), n, o );
+      break;
+
     case 'follow':
-      console.log( `follow: ${ JSON.stringify( options ) }` );
+      log( `follow: ${ JSON.stringify( options ) }` );
 
       // Parse the id as an integer, if it was not provided or is not an integer,
       //  throw an error
@@ -280,7 +332,7 @@ export function getData( type, options ) {
         throw new APIError( 'Invalid API object request!', 404 );
 
       // Log the data (for debugging)
-      console.log( `log: ${ db.stringify( undefined, 2 ) }` );
+      log( `log: ${ db.stringify( undefined, 2 ) }` );
       result = true;
       break;
 
@@ -303,7 +355,7 @@ export function addData( type, options ) {
 
   switch ( type ) {
     case 'user':
-      console.log( `add user: ${ JSON.stringify( options ) }` );
+      log( `add user: ${ JSON.stringify( options ) }` );
 
       // If the username is not provided, throw an error
       validateParamGiven( options.username, 'username' );
@@ -344,7 +396,7 @@ export function addData( type, options ) {
       break;
 
     case 'post':
-      console.log( `add post: ${ JSON.stringify( options ) }` );
+      log( `add post: ${ JSON.stringify( options ) }` );
 
       // If the user id is not provided or is not a number, throw an error
       validateParamType( options.user, 'user', 'number' );
@@ -380,7 +432,7 @@ export function addData( type, options ) {
       break;
 
     case 'follow':
-      console.log( `follow: ${ JSON.stringify( options ) }` );
+      log( `follow: ${ JSON.stringify( options ) }` );
 
       // If the user id is not provided or is not a number, throw an error
       validateParamType( options.id, 'id', 'number' );
@@ -430,7 +482,7 @@ export function deleteData( type, options ) {
 
   switch ( type ) {
     case 'user':
-      console.log( `remove user: ${ JSON.stringify( options ) }` );
+      log( `remove user: ${ JSON.stringify( options ) }` );
 
       // Parse the id as an integer, if it was not provided or is not an integer,
       //  throw an error
@@ -448,7 +500,7 @@ export function deleteData( type, options ) {
       break;
 
     case 'post':
-      console.log( `remove post: ${ JSON.stringify( options ) }` );
+      log( `remove post: ${ JSON.stringify( options ) }` );
 
       // Parse the id as an integer, if it was not provided or is not an integer,
       //  throw an error
@@ -466,7 +518,7 @@ export function deleteData( type, options ) {
       break;
 
     case 'follow':
-      console.log( `unfollow: ${ JSON.stringify( options ) }` );
+      log( `unfollow: ${ JSON.stringify( options ) }` );
 
       // Parse the user id as an integer, if it was not provided or is not an integer,
       //  throw an error
@@ -519,7 +571,7 @@ export function updateData( type, idOptions, options ) {
 
   switch ( type ) {
     case 'user':
-      console.log( `update user: ${
+      log( `update user: ${
         JSON.stringify( idOptions )
       }, ${
         JSON.stringify( options )
@@ -576,7 +628,7 @@ export function updateData( type, idOptions, options ) {
       break;
 
     case 'post':
-      console.log( `update post: ${
+      log( `update post: ${
         JSON.stringify( idOptions )
       }, ${
         JSON.stringify( options )

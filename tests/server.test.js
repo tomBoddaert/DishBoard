@@ -15,8 +15,8 @@ import { app } from '../server.js';
 // Add some data to the test database
 db.addUser( 'u1', '#868686', 'j' );
 db.addUser( 'u2', '#686868', 'k' );
-db.addPost( 0, 'recipe_string', 'hello world' );
-db.addPost( 1, 'recipe_string2', 'hello planet' );
+db.addPost( 0, 0, [ 'recipe_instruction' ], 'hello world' );
+db.addPost( 1, 0, [ 'recipe2_instruction', 'recipe2_instruction2' ], 'hello planet' );
 
 
 test( 'GET index', async () => {
@@ -53,25 +53,12 @@ test( 'GET /api/user', async () => {
 } );
 
 
-test( 'GET /api/users', async () => {
-  // Send a GET request to /api/users
-  const res = await request( app )
-    .get( '/api/users' )
-    // Check that the content type starts with application/json
-    .expect( 'Content-Type', /^application\/json;?/ )
-    // Check that the response status is OK
-    .expect( 200 );
-
-  // Check that the request was successful and that the data matches the newest users list
-  expect( res.body ).toMatchObject( {
-    success: true,
-    data:    getData( 'users', {} )
-  } );
-} );
-
-
 test( 'POST /api/user', async () => {
-  const expectedUser = { username: 'u3', colour: '#aaaaff', glyph: 'l' };
+  const expectedUser = {
+    username: 'u3',
+    colour:   '#aaaaff',
+    glyph:    'l'
+  };
 
   // Send a POST request to /api/user
   const res = await request( app )
@@ -88,9 +75,7 @@ test( 'POST /api/user', async () => {
   // Check that the new user matches the expected user
   expect( db.getUser( id ) ).toMatchObject( {
     id,
-    username: expectedUser.username,
-    colour:   expectedUser.colour,
-    glyph:    expectedUser.glyph
+    ...expectedUser
   } );
 } );
 
@@ -107,7 +92,7 @@ test( 'PATCH /api/user', async () => {
     return user.username + user.username;
   } )();
 
-  // Send a PATCH request to /api/user, with the newest id
+  // Send a PATCH request to /api/user
   const res = await request( app )
     .patch( `/api/user?id=${ user.id }` )
     // Update the username
@@ -118,9 +103,11 @@ test( 'PATCH /api/user', async () => {
     .expect( 200 );
 
   // Check that the request was successful
-  expect( res.body ).toMatchObject( { success: true, data: true } );
+  expect( res.body )
+    .toMatchObject( { success: true, data: true } );
   // Check that the user matches the updated user
-  expect( db.getUser( user.id ) ).toMatchObject( { ...user, username: newUsername } );
+  expect( db.getUser( user.id ) )
+    .toMatchObject( { ...user, username: newUsername } );
 } );
 
 
@@ -140,6 +127,265 @@ test( 'DELETE /api/user', async () => {
   expect( res.body ).toMatchObject( { success: true, data: true } );
   // Check that the user has been deleted
   expect( db.existsUser( id ) ).toBe( false );
+} );
+
+
+test( 'GET /api/post', async () => {
+  // Get the latest post
+  const [ post ] = getData( 'posts', { n: 1 } );
+
+  // Send a GET request to /api/post
+  const res = await request( app )
+    .get( `/api/post?id=${ post.id }` )
+    // Check that the content type starts with application/json
+    .expect( 'Content-Type', /^application\/json;?/ )
+    // Check that the response status is OK
+    .expect( 200 );
+
+  // Check that the request was successful and that the data matches the newest users list
+  expect( res.body ).toMatchObject( {
+    success: true,
+    data:    post
+  } );
+} );
+
+
+test( 'POST /api/post', async () => {
+  const [ user ] = getData( 'users', { n: 1 } );
+
+  // Create a new post
+  const newPost = {
+    user:   user.id,
+    recipe: [ 'instruction 1', 'instruction 2' ],
+    body:   'body 1'
+  };
+
+  // Send a POST request to /api/post
+  const res = await request( app )
+    .post( '/api/post' )
+    // Add the new post
+    .send( newPost )
+    // Check that the content type starts with application/json
+    .expect( 'Content-Type', /^application\/json;?/ )
+    // Check that the response status is OK
+    .expect( 200 );
+
+  // Get the new id from the response
+  const { data: id } = res.body;
+  // Check that the new post matches the expected user
+  expect( db.getPost( id ) ).toMatchObject( {
+    id,
+    ...newPost
+  } );
+
+} );
+
+
+test( 'PATCH /api/post', async () => {
+  // Get the newest post
+  const [ post ] = getData( 'posts', { n: 1 } );
+  post.user = post.user.id;
+
+  // Generate a new body
+  const newBody = `${ post } (edited)`;
+
+  // Send a PATCH request to /api/post
+  const res = await request( app )
+    .patch( `/api/post?id=${ post.id }` )
+    // Update the body
+    .send( { body: newBody } )
+    // Check that the content type starts with application/json
+    .expect( 'Content-Type', /^application\/json;?/ )
+    // Check that the response status is OK
+    .expect( 200 );
+
+  // Check that the request was successful
+  expect( res.body )
+    .toMatchObject( { success: true, data: true } );
+  // Check that the post matches the updated post
+  expect( db.getPost( post.id ) )
+    .toMatchObject( { ...post, body: newBody } );
+} );
+
+
+test( 'DELETE /api/post', async () => {
+  // Get the newest post
+  const [ post ] = db.getPosts( 1, 0 );
+
+  const res = await request( app )
+    .delete( `/api/post?id=${ post.id }` )
+    // Check that the content type starts with application/json
+    .expect( 'Content-Type', /^application\/json;?/ )
+    // Check that the response status is OK
+    .expect( 200 );
+
+  // Check that the request was successful
+  expect( res.body )
+    .toMatchObject( { success: true, data: true } );
+  // Check that the post no longer exists
+  expect( db.existsPost( post.id ) ).toBe( false );
+} );
+
+
+test( 'GET /api/users', async () => {
+  // Send a GET request to /api/users
+  const res = await request( app )
+    .get( '/api/users' )
+    // Check that the content type starts with application/json
+    .expect( 'Content-Type', /^application\/json;?/ )
+    // Check that the response status is OK
+    .expect( 200 );
+
+  // Check that the request was successful and that the data matches the newest users list
+  expect( res.body ).toMatchObject( {
+    success: true,
+    data:    getData( 'users', {} )
+  } );
+} );
+
+
+test( 'GET /api/searchUsers', async () => {
+  // Create a new user
+  const newUser = {
+    username: 'abcdefghijkl',
+    colour:   '#aaaaaa',
+    glyph:    'g'
+  };
+
+  // Add the user to the database
+  db.addUser(
+    newUser.username,
+    newUser.colour,
+    newUser.glyph
+  );
+
+  // Send a GET request to /api/searchUsers with
+  //  a similar username
+  const res = await request( app )
+    .get( '/api/searchUsers?query=cdefhij&n=1' )
+    // Check that the content type starts with application/json
+    .expect( 'Content-Type', /^application\/json;?/ )
+    // Check that the response status is OK
+    .expect( 200 );
+
+  // Check the search result matches the expected user
+  expect( res.body )
+    .toMatchObject( {
+      success: true,
+      data:    [ newUser ]
+    } );
+} );
+
+
+test( 'GET /api/posts', async () => {
+  // Send a GET request to /api/posts
+  const res = await request( app )
+    .get( '/api/posts' )
+    // Check that the content type starts with application/json
+    .expect( 'Content-Type', /^application\/json;?/ )
+    // Check that the response status is OK
+    .expect( 200 );
+
+  expect( res.body )
+    .toMatchObject( {
+      success: true,
+      data:    db.getPosts( 10, 0 )
+    } );
+} );
+
+
+test( 'GET /api/searchPosts', async () => {
+  // Get the newest user
+  const [ user ] = db.getUsers( 1, 0 );
+
+  // Create a new post
+  const newPost = {
+    user:      user,
+    timestamp: 5,
+    recipe:    [ 'instruction1', 'abcdefghijkl' ],
+    body:      'body1'
+  };
+
+  // Add the post to the database
+  db.addPost(
+    newPost.user.id,
+    newPost.timestamp,
+    newPost.recipe,
+    newPost.body
+  );
+
+  user.nPosts++;
+
+  // Send a GET request to /api/searchUsers with
+  //  a similar username
+  const res = await request( app )
+    .get( '/api/searchPosts?query=cdefhij&n=1' )
+    // Check that the content type starts with application/json
+    .expect( 'Content-Type', /^application\/json;?/ )
+    // Check that the response status is OK
+    .expect( 200 );
+
+  // Check the search result matches the expected user
+  expect( res.body )
+    .toMatchObject( {
+      success: true,
+      data:    [ newPost ]
+    } );
+} );
+
+
+test( 'GET and POST /api/follow', async () => {
+  // Create two new users
+  const newUser1 = {
+    username: 'followUser1',
+    colour:   '#111111',
+    glyph:    'a'
+  };
+  newUser1.id = db.addUser(
+    newUser1.username,
+    newUser1.colour,
+    newUser1.glyph
+  );
+
+  const newUser2 = {
+    username: 'followUser2',
+    colour:   '#222222',
+    glyph:    'b'
+  };
+  newUser2.id = db.addUser(
+    newUser2.username,
+    newUser2.colour,
+    newUser2.glyph
+  );
+
+  // Send a POST request to /api/follow
+  const res1 = await request( app )
+    .post( '/api/follow' )
+    // Add the follow
+    .send( { id: newUser1.id, follow: newUser2.id } )
+    // Check that the content type starts with application/json
+    .expect( 'Content-Type', /^application\/json;?/ )
+    // Check that the response status is OK
+    .expect( 200 );
+
+  // Check that the request was successful
+  expect( res1.body )
+    .toMatchObject( { success: true, data: true } );
+  // Check that the follow has been added
+  expect( db.existsUserFollow( newUser1.id, newUser2.id ) )
+    .toBe( true );
+
+  // Send a GET request to /api/follow
+  const res2 = await request( app )
+    .get( `/api/follow?id=${ newUser1.id }&follow=${ newUser2.id }` )
+    // Check that the content type starts with application/json
+    .expect( 'Content-Type', /^application\/json;?/ )
+    // Check that the response status is OK
+    .expect( 200 );
+
+  // Check that the request was successful
+  expect( res2.body )
+    .toMatchObject( { success: true, data: true } );
 } );
 
 

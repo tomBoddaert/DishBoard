@@ -81,7 +81,6 @@
     "no-label-var": "error",
     "no-lone-blocks": "error",
     "no-lonely-if": "error",
-    "no-loop-func": "error",
     "no-mixed-operators": "error",
     "no-new-func": "error",
     "no-new-object": "error",
