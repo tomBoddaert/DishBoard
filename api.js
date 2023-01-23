@@ -327,6 +327,29 @@ export function getData( type, options ) {
 
       break;
 
+    case 'followingPosts':
+    case 'followingposts':
+      log( `followingPosts: ${ JSON.stringify( options ) }` );
+
+      // Parse the id as an integer, if it was not provided,
+      //  throw an error
+      id = validateParamParseInt( options.id, 'id' );
+
+      // If the user does not exist, throw an error
+      if ( !db.existsUser( id ) )
+        throw new APIError( `User '${ id }' not found!` );
+
+      // Get the number of posts with default value and parse it as an integer
+      n = validateParamParseIntDefault( options.n, 'n', 10 );
+
+      // Get the offset with default value and parse it as an integer
+      o = validateParamParseIntDefault( options.o, 'o', 0 );
+
+      // Get the posts
+      result = db.getUserFollowingPosts( id, n, o );
+
+      break;
+
     case 'log':
       if ( db.usingProductionDB() )
         throw new APIError( 'Invalid API object request!', 404 );

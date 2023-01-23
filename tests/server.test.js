@@ -28,8 +28,13 @@ test( 'GET index', async () => {
     // Check that the response status is OK
     .expect( 200 );
 
+  const nonce = /'nonce-([^']+)'/.exec( res.headers[ 'content-security-policy' ] )[ 1 ];
+
   // Check that the response text is the index.html file
-  expect( res.text ).toBe( await fs.readFile( './index.html', 'utf-8' ) );
+  expect( res.text ).toBe(
+    ( await fs.readFile( './index.html', 'utf-8' ) )
+      .replace( '#script-nonce#', nonce )
+  );
 } );
 
 
@@ -334,7 +339,7 @@ test( 'GET /api/searchPosts', async () => {
 } );
 
 
-test( 'GET and POST /api/follow', async () => {
+test( 'GET and POST /api/follow and GET /api/followingPosts', async () => {
   // Create two new users
   const newUser1 = {
     username: 'followUser1',
@@ -386,6 +391,45 @@ test( 'GET and POST /api/follow', async () => {
   // Check that the request was successful
   expect( res2.body )
     .toMatchObject( { success: true, data: true } );
+
+  // Create two new posts
+  const newPost1 = {
+    user:   newUser1.id,
+    recipe: [ 'r1' ],
+    body:   'b1'
+  };
+  newPost1.id = db.addPost( newPost1.user, 0, newPost1.recipe, newPost1.body );
+
+  const newPost2 = {
+    user:   newUser2.id,
+    recipe: [ 'r2' ],
+    body:   'b2'
+  };
+  newPost2.id = db.addPost( newPost2.user, 0, newPost2.recipe, newPost2.body );
+
+  // Send the request to get user1's following posts
+  const res3 = await request( app )
+    .get( `/api/followingPosts?id=${ newUser1.id }` )
+    // Check that the content type starts with application/json
+    .expect( 'Content-Type', /^application\/json;?/ )
+    // Check that the response status is OK
+    .expect( 200 );
+
+  // Check that the request was successful
+  expect( res3.body )
+    .toMatchObject( { success: true, data: [ { ...newPost2, user: newUser2 } ] } );
+
+  // Send the request to get user2's following posts
+  const res4 = await request( app )
+    .get( `/api/followingPosts?id=${ newUser2.id }` )
+    // Check that the content type starts with application/json
+    .expect( 'Content-Type', /^application\/json;?/ )
+    // Check that the response status is OK
+    .expect( 200 );
+
+  // Check that the request was successful
+  expect( res4.body )
+    .toMatchObject( { success: true, data: [] } );
 } );
 
 

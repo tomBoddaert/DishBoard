@@ -4,8 +4,14 @@
  */
 
 
+/** The lifetime of the browser cache for the resources directory, in ms */
+const STATIC_CACHE_LIFETIME = 86_400_000;
+
+
 import fs from 'fs/promises';
 import express from 'express';
+import compression from 'compression';
+import { randomBytes } from 'crypto';
 
 import { APIError, getData, addData, deleteData, updateData } from './api.js';
 
@@ -53,17 +59,28 @@ function sendAPIResult( res, call, ...args ) {
 // Create the app
 export const app = express();
 
+// Enable compression
+app.use( compression() );
+
 // Parse the body as json
 app.use( express.json() );
 
 // Serve the static resources
-app.use( '/resources', express.static( './resources' ) );
+app.use( '/resources', express.static( './resources', { maxage: STATIC_CACHE_LIFETIME } ) );
 
 // Serve the web page
 app.get( '/', async ( req, res ) => {
   // Get the index page from the file
-  const page = await fs.readFile( './index.html', 'utf-8' );
+  const nonce = randomBytes( 32 ).toString( 'base64' );
+  const page = ( await fs.readFile( './index.html', 'utf-8' ) )
+    .replace( '#script-nonce#', nonce );
 
+  // Set the CSP to only load scripts and object from self
+  res.set(
+    'Content-Security-Policy',
+    `base-uri 'self'; script-src 'self' 'nonce-${ nonce }' 'unsafe-inline'; object-src 'self'`
+  );
+  res.set( 'Cache-control', `public, max-age=${ STATIC_CACHE_LIFETIME }` );
   res.contentType( 'text/html' );
   res.end( page );
 } );

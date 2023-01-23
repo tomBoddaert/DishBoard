@@ -672,3 +672,61 @@ The body must be JSON encoded.
 ### Response data
 
 `true`
+
+# `/api/followingPosts`
+
+## GET
+
+### Parameters
+
+#### `id`
+
+<table>
+  <tr>
+    <td>Optional</td> <td>no</td>
+  </tr>
+  <tr>
+    <th>Arguments</th>
+  </tr>
+  <tr>
+    <td>id</td> <td><code>integer</code></td>
+  </tr>
+</table>
+
+#### `n`
+
+<table>
+  <tr>
+    <td>Optional</td> <td>yes</td>
+  </tr>
+  <tr>
+    <td>Default</td> <td><code>10</code></td>
+  </tr>
+  <tr>
+    <th>Arguments</th>
+  </tr>
+  <tr>
+    <td>number</td> <td><code>integer</code></td>
+  </tr>
+</table>
+
+#### `o`
+
+<table>
+  <tr>
+    <td>Optional</td> <td>yes</td>
+  </tr>
+  <tr>
+    <td>Default</td> <td><code>0</code></td>
+  </tr>
+  <tr>
+    <th>Arguments</th>
+  </tr>
+  <tr>
+    <td>offset</td> <td><code>integer</code></td>
+  </tr>
+</table>
+
+### Response data
+
+`Post[]` from users the user's (`id`) following list in order from newest to oldest with a maximum length of the `n` parameter, and offset of the `o` parameter

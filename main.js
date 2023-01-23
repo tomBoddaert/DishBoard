@@ -20,8 +20,8 @@ try {
 // Load environment variables from the .env file
 import { config as dotenvConfig } from 'dotenv';
 dotenvConfig();
-// Get the SERVER_PORT and SERVER_HOST environment variables
-const { SERVER_PORT, SERVER_HOST } = process.env;
+// Get the DISHBOARD_PORT and DISHBOARD_HOST environment variables
+const { DISHBOARD_PORT, DISHBOARD_HOST } = process.env;
 
 import { useProductionDB, default as db } from './db.js';
 import { app } from './server.js';
@@ -32,9 +32,9 @@ const args = process.argv.slice( 2 );
 
 // Listen for requests
 app.listen(
-  SERVER_PORT,
-  SERVER_HOST,
-  () => console.log( `Listening on http://${ SERVER_HOST }:${ SERVER_PORT }/` )
+  DISHBOARD_PORT,
+  DISHBOARD_HOST,
+  () => console.log( `Listening on http://${ DISHBOARD_HOST }:${ DISHBOARD_PORT }/` )
 );
 
 

@@ -6,29 +6,33 @@ This is a social media / recipe sharing website made for a Uni project.
 
 ## Use
 
-Go to `http://localhost:8080/` by default (configurable in [.env](/.env))
+Go to `http://localhost:8080/` by default (host and port configurable in [.env](/.env))
 
 ### Login / Sign up
 
-To login or sign up, click the `Login` button in the navigation bar at the top.
+To login or sign up, click the `Login` button in the navigation bar at the top.  
 ![A button with the text Login](/docs/login_button.png)
 
-This will take you to the login page.
+This will take you to the login page.  
 ![A page with a username box and login and sign up buttons](/docs/login_page.png)
 
-Clicking `Sign Up` will bring you to the sign up page.
+Clicking `Sign Up` will bring you to the sign up page.  
 ![A page with a username box, glyph and colour selectors and a sign up button](/docs/sign_up_page.png)
 
-### Feed
+### Posts
 
-The feed has posts ordered from newest to oldest.
+The page has posts ordered from newest to oldest.  
 ![A post with a user, recipe and some text](/docs/post.png)
 
 Clicking on the user will bring you to the user page.
 
+### Feed
+
+When logged in, a `Feed` page will also appear. This will show the posts from the people you follow ordered from newest to oldest.
+
 ### Users
 
-The users page has the registered users from newest to oldest.
+The users page has the registered users from newest to oldest.  
 ![A user with a glyph, and the number of posts and people they are following](/docs/user.png)
 
 ## Starting

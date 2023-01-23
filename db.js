@@ -274,6 +274,22 @@ export function getUserFollowing( id, n, o ) {
     .map( followingId => getUser( followingId ) );
 }
 
+/** Get the last n posts from the users followed with an offset of o
+ * @param { number } id
+ * @param { number } n
+ * @param { number } o
+ * @returns { object[] }
+ */
+export function getUserFollowingPosts( id, n, o ) {
+  return data.postIds
+    .map( postId => getPost( postId ) )
+    .filter( ( { user } ) => data.users[ id ].following.includes( user ) )
+    .slice( o, o + n )
+    .map( post => (
+      { ...filterPost( post ), user: getUser( post.user ) }
+    ) );
+}
+
 
 /** Get the last n users to sign up with an offset of o
  * @param { number } n
@@ -451,9 +467,9 @@ export function getPost( id ) {
 export function getPosts( n, o ) {
   return data.postIds.slice( o, o + n )
     .map( postId => getPost( postId ) )
-    .map( post => {
-      return { ...filterPost( post ), user: getUser( post.user ) };
-    } );
+    .map( post => (
+      { ...filterPost( post ), user: getUser( post.user ) }
+    ) );
 }
 
 // The search is cached because it takes a while to run
@@ -578,6 +594,7 @@ export default {
   getUserByUsername,
   getUserPosts,
   getUserFollowing,
+  getUserFollowingPosts,
   getUsers,
   getUsersSearch,
   addUser,
