@@ -1,5 +1,9 @@
 # DishBoard API
 
+Examples are in [/docs/API_examples.md](/docs/API_examples.md)
+
+All parameters are search parameters.
+
 If a search parameter or key in a request body is not marked as optional, then it is required! The errors from the server should be human readable and give you specific messages about what went wrong. 
 
 ## Responses
@@ -96,7 +100,21 @@ Get information about a user.
 
 <table>
   <tr>
-    <td>Optional</td> <td>no</td>
+    <td>Condition</td> <td>Unless `username` provided</td>
+  </tr>
+  <tr>
+    <th>Arguments</th>
+  </tr>
+  <tr>
+    <td>id</td> <td><code>integer</code></td>
+  </tr>
+</table>
+
+#### `username`
+
+<table>
+  <tr>
+    <td>Condition</td> <td>Unless `id` provided</td>
   </tr>
   <tr>
     <th>Arguments</th>

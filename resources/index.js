@@ -33,8 +33,9 @@ function jsonBodyErrorToResponse( request ) {
 
 /** Add the error to the main container
  * @param { string } message
+ * @param { any } pageData
  */
-function errorToMain( message ) {
+function errorToMain( message, pageData ) {
   let errorElem = main.getElementsByClassName( 'error' )[ 0 ];
 
   if ( errorElem === undefined ) {
@@ -43,7 +44,20 @@ function errorToMain( message ) {
     main.prepend( errorElem );
   }
 
-  errorElem.innerText = message;
+  errorElem.innerText = `${ message }\n`;
+
+  if ( message.startsWith( 'Connection error!' ) ) {
+    const reloadElem = document.createElement( 'input' );
+    reloadElem.setAttribute( 'type', 'button' );
+    reloadElem.setAttribute( 'value', 'Try again' );
+    reloadElem.addEventListener( 'click', () => {
+      newPageData = pageData;
+      changePage( currentPage );
+    }, { once: true } );
+
+    errorElem.appendChild( reloadElem );
+  }
+
   errorElem.scrollIntoView( { behavior: 'smooth', block: 'center' } );
 }
 
@@ -347,7 +361,7 @@ const initPage = {
 
     // If the response is an error, show it
     if ( !response.success )
-      return errorToMain( response.message );
+      return errorToMain( response.message, newPageData );
 
     const editElem = construct.postEdit( response.data );
     main.appendChild( editElem );
@@ -476,7 +490,7 @@ const initPage = {
     );
 
     if ( !response.success )
-      return errorToMain( response.message );
+      return errorToMain( response.message, newPageData );
 
     // Get the data
     const { data } = response;
@@ -485,6 +499,7 @@ const initPage = {
     const userElem = construct.user( data );
     main.appendChild( userElem );
 
+    const pageData = newPageData;
     const displayed = [];
     let offset = 0;
 
@@ -496,7 +511,7 @@ const initPage = {
       );
 
       if ( !response2.success )
-        return errorToMain( response2.message );
+        return errorToMain( response2.message, pageData );
 
       // Get the data
       const { data: data2 } = response2;
@@ -578,7 +593,7 @@ const initPage = {
 
     // If there was an error, show it
     if ( !followResponse.success )
-      return errorToMain( followResponse.errorToMain( followResponse.message ) );
+      return errorToMain( followResponse.message, newPageData );
 
     let isFollowing = followResponse.data;
 
@@ -614,7 +629,7 @@ const initPage = {
 
       // If there was an error, show it
       if ( !followResponse.success )
-        return errorToMain( followResponse.message );
+        return errorToMain( followResponse.message, pageData );
 
       // Invert following and update the text
       isFollowing = !isFollowing;
@@ -640,7 +655,7 @@ const initPage = {
 
       // If the response is an error, show it
       if ( !response.success )
-        return errorToMain( response.message );
+        return errorToMain( response.message, [ type, query ] );
 
       // Get the data
       const { data } = response;
